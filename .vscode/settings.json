@@ -1,0 +1,34 @@
+{
+  // --- Format on Save ---
+  "editor.formatOnSave": true,
+  "editor.formatOnType": true,
+  "editor.autoIndent": "full",
+
+  // --- C# formatter (C# Dev Kit / OmniSharp) ---
+  "[csharp]": {
+    "editor.defaultFormatter": "ms-dotnettools.csharp",
+    "editor.formatOnSave": true,
+    "editor.formatOnType": true
+  },
+
+  // --- Razor formatter ---
+  "[razor]": {
+    "editor.defaultFormatter": "ms-dotnettools.csharp",
+    "editor.formatOnSave": true,
+    "editor.formatOnType": true
+  },
+
+  // --- Brace/bracket formatting (Enter inside {} indents correctly) ---
+  "editor.bracketPairColorization.enabled": true,
+  "editor.guides.bracketPairs": "active",
+
+  // --- GitHub Copilot completions ---
+  "github.copilot.enable": {
+    "*": true,
+    "csharp": true,
+    "razor": true,
+    "plaintext": true,
+    "markdown": true
+  },
+  "github.copilot.editor.enableAutoCompletions": true
+}

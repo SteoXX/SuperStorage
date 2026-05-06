@@ -1,0 +1,11 @@
+<Solution>
+    <Folder Name="/SolutionItems/">
+        <File Path="Directory.Packages.props" />
+    </Folder>
+    <Project Path="src/SuperStorage.Api/SuperStorage.Api.csproj" />
+    <Project Path="src/SuperStorage.Application/SuperStorage.Application.csproj" />
+    <Project Path="src/SuperStorage.Contracts/SuperStorage.Contracts.csproj" />
+    <Project Path="src/SuperStorage.Domain/SuperStorage.Domain.csproj" />
+    <Project Path="src/SuperStorage.Infrastructure/SuperStorage.Infrastructure.csproj" />
+    <Project Path="src/SuperStorage.Client/SuperStorage.Client.csproj" />
+</Solution>
