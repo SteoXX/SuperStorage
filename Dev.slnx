@@ -1,9 +1,19 @@
 <Solution>
     <Folder Name="/Doc/">
-        <File Path="project-info.md" />
+        <File Path="Doc/00-visione-e-scope.md" />
+        <File Path="Doc/01-architettura.md" />
+        <File Path="Doc/02-modello-dominio.md" />
+        <File Path="Doc/03-database-efcore.md" />
+        <File Path="Doc/04-sicurezza-bff-auth.md" />
+        <File Path="Doc/05-ui-ux-blazor.md" />
+        <File Path="Doc/06-librerie-pattern-consigliati.md" />
+        <File Path="Doc/07-test-qualita.md" />
+        <File Path="Doc/08-osservabilita-deploy.md" />
+        <File Path="Doc/09-piano-sviluppo.md" />
     </Folder>
     <Folder Name="/Solution Items/">
         <File Path="Directory.Packages.props" />
+        <File Path="project-info.md" />
     </Folder>
     <Project Path="src/SuperStorage.Api/SuperStorage.Api.csproj" />
     <Project Path="src/SuperStorage.Application/SuperStorage.Application.csproj" />
