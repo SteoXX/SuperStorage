@@ -1,5 +1,8 @@
 <Solution>
-    <Folder Name="/SolutionItems/">
+    <Folder Name="/Doc/">
+        <File Path="project-info.md" />
+    </Folder>
+    <Folder Name="/Solution Items/">
         <File Path="Directory.Packages.props" />
     </Folder>
     <Project Path="src/SuperStorage.Api/SuperStorage.Api.csproj" />
