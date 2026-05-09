@@ -57,6 +57,12 @@ Contro:
 
 Scelta consigliata per questo progetto: Opzione A, mantenendo il client WASM esistente ma servito dall'API.
 
+Dettaglio operativo del modello hosted WASM/BFF:
+
+```text
+Doc/Auth/blazor-wasm-bff-hosting.md
+```
+
 ## Configurazione cookie
 
 Requisiti:
@@ -164,6 +170,14 @@ Middleware consigliati:
 - rate limiter su login;
 - request logging Serilog;
 - health checks.
+
+In SuperStorage la configurazione dell'exception handler API vive in:
+
+```text
+src/SuperStorage.Api/DependencyInjection/ExceptionHandlerExtensions.cs
+```
+
+`Program.cs` deve limitarsi a chiamare `UseApiExceptionHandler()` per mantenere pulito il bootstrap della pipeline.
 
 Ordine indicativo:
 

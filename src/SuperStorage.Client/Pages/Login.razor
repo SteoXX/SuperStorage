@@ -1,0 +1,106 @@
+@page "/login"
+@inject AuthApiClient AuthApiClient
+@inject CookieAuthenticationStateProvider AuthStateProvider
+@inject NavigationManager Navigation
+@inject ISnackbar Snackbar
+
+<MudContainer MaxWidth="MaxWidth.Small" Class="mt-8">
+    <MudPaper Class="pa-6" Elevation="2">
+        <MudText Typo="Typo.h5" Class="mb-4">Login</MudText>
+
+        <MudForm @ref="_form">
+            <MudStack Spacing="3">
+                <MudTextField @bind-Value="_model.Email"
+                              Label="Email"
+                              InputType="InputType.Email"
+                              Required="true"
+                              Disabled="_isBusy" />
+
+                <MudTextField @bind-Value="_model.Password"
+                              Label="Password"
+                              InputType="InputType.Password"
+                              Required="true"
+                              Disabled="_isBusy" />
+
+                <MudCheckBox @bind-Value="_model.RememberMe"
+                             Label="Remember me"
+                             Disabled="_isBusy" />
+
+                <MudButton Variant="Variant.Filled"
+                           Color="Color.Primary"
+                           Disabled="_isBusy"
+                           OnClick="SubmitAsync">
+                    Login
+                </MudButton>
+
+                <MudLink Href="register">Create an account</MudLink>
+            </MudStack>
+        </MudForm>
+    </MudPaper>
+</MudContainer>
+
+@code {
+    private readonly LoginFormModel _model = new();
+    private MudForm? _form;
+    private bool _isBusy;
+
+    [SupplyParameterFromQuery]
+    public string? ReturnUrl { get; set; }
+
+    private async Task SubmitAsync()
+    {
+        if (_form is null)
+        {
+            return;
+        }
+
+        await _form.ValidateAsync();
+
+        if (!_form.IsValid)
+        {
+            return;
+        }
+
+        _isBusy = true;
+
+        try
+        {
+            var user = await AuthApiClient.LoginAsync(new LoginRequest(
+                _model.Email,
+                _model.Password,
+                _model.RememberMe));
+
+            AuthStateProvider.NotifyUserChanged(user);
+            Navigation.NavigateTo(GetReturnUrl(), replace: true);
+        }
+        catch (ApiException exception)
+        {
+            Snackbar.Add(exception.Message, Severity.Error);
+        }
+        finally
+        {
+            _isBusy = false;
+        }
+    }
+
+    private string GetReturnUrl()
+    {
+        if (string.IsNullOrWhiteSpace(ReturnUrl))
+        {
+            return "/";
+        }
+
+        return ReturnUrl.StartsWith("http", StringComparison.OrdinalIgnoreCase)
+            ? "/"
+            : ReturnUrl;
+    }
+
+    private sealed class LoginFormModel
+    {
+        public string Email { get; set; } = string.Empty;
+
+        public string Password { get; set; } = string.Empty;
+
+        public bool RememberMe { get; set; }
+    }
+}

@@ -1,0 +1,101 @@
+@page "/register"
+@inject AuthApiClient AuthApiClient
+@inject CookieAuthenticationStateProvider AuthStateProvider
+@inject NavigationManager Navigation
+@inject ISnackbar Snackbar
+
+<MudContainer MaxWidth="MaxWidth.Small" Class="mt-8">
+    <MudPaper Class="pa-6" Elevation="2">
+        <MudText Typo="Typo.h5" Class="mb-4">Register</MudText>
+
+        <MudForm @ref="_form">
+            <MudStack Spacing="3">
+                <MudTextField @bind-Value="_model.DisplayName"
+                              Label="Display name"
+                              Required="true"
+                              Disabled="_isBusy" />
+
+                <MudTextField @bind-Value="_model.Email"
+                              Label="Email"
+                              InputType="InputType.Email"
+                              Required="true"
+                              Disabled="_isBusy" />
+
+                <MudTextField @bind-Value="_model.Password"
+                              Label="Password"
+                              InputType="InputType.Password"
+                              Required="true"
+                              Disabled="_isBusy" />
+
+                <MudTextField @bind-Value="_model.ConfirmPassword"
+                              Label="Confirm password"
+                              InputType="InputType.Password"
+                              Required="true"
+                              Disabled="_isBusy" />
+
+                <MudButton Variant="Variant.Filled"
+                           Color="Color.Primary"
+                           Disabled="_isBusy"
+                           OnClick="SubmitAsync">
+                    Register
+                </MudButton>
+
+                <MudLink Href="login">Already have an account?</MudLink>
+            </MudStack>
+        </MudForm>
+    </MudPaper>
+</MudContainer>
+
+@code {
+    private readonly RegisterFormModel _model = new();
+    private MudForm? _form;
+    private bool _isBusy;
+
+    private async Task SubmitAsync()
+    {
+        if (_form is null)
+        {
+            return;
+        }
+
+        await _form.ValidateAsync();
+
+        if (!_form.IsValid)
+        {
+            return;
+        }
+
+        _isBusy = true;
+
+        try
+        {
+            var user = await AuthApiClient.RegisterAsync(new RegisterRequest(
+                _model.Email,
+                _model.DisplayName,
+                _model.Password,
+                _model.ConfirmPassword));
+
+            AuthStateProvider.NotifyUserChanged(user);
+            Navigation.NavigateTo("/", replace: true);
+        }
+        catch (ApiException exception)
+        {
+            Snackbar.Add(exception.Message, Severity.Error);
+        }
+        finally
+        {
+            _isBusy = false;
+        }
+    }
+
+    private sealed class RegisterFormModel
+    {
+        public string DisplayName { get; set; } = string.Empty;
+
+        public string Email { get; set; } = string.Empty;
+
+        public string Password { get; set; } = string.Empty;
+
+        public string ConfirmPassword { get; set; } = string.Empty;
+    }
+}

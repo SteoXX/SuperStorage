@@ -1,9 +1,11 @@
 using MediatR;
+using Microsoft.AspNetCore.Antiforgery;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 using SuperStorage.Application.Features.Products.Commands.CreateProduct;
 using SuperStorage.Application.Features.Products.Queries.GetProductById;
 using SuperStorage.Application.Features.Products.Queries.SearchProducts;
+using SuperStorage.Contracts.Auth;
 using SuperStorage.Contracts.Common;
 using SuperStorage.Contracts.Products;
 
@@ -19,18 +21,21 @@ internal static class ProductEndpoints
 
         group.MapGet("/", SearchProductsAsync)
             .WithName("SearchProducts")
-            .Produces<PagedResult<ProductListItemResponse>>();
+            .Produces<PagedResult<ProductListItemResponse>>()
+            .RequireAuthorization(AuthPolicies.ProductsRead);
 
         group.MapGet("/{id:guid}", GetProductByIdAsync)
             .WithName("GetProductById")
             .Produces<ProductResponse>()
-            .Produces(StatusCodes.Status404NotFound);
+            .Produces(StatusCodes.Status404NotFound)
+            .RequireAuthorization(AuthPolicies.ProductsRead);
 
         group.MapPost("/", CreateProductAsync)
             .WithName("CreateProduct")
             .Produces<ProductResponse>(StatusCodes.Status201Created)
             .ProducesValidationProblem()
-            .ProducesProblem(StatusCodes.Status409Conflict);
+            .ProducesProblem(StatusCodes.Status409Conflict)
+            .RequireAuthorization(AuthPolicies.ProductsWrite);
 
         return app;
     }
@@ -65,9 +70,13 @@ internal static class ProductEndpoints
 
     private static async Task<Created<ProductResponse>> CreateProductAsync(
         [FromBody] CreateProductRequest request,
+        HttpContext httpContext,
+        IAntiforgery antiforgery,
         ISender sender,
         CancellationToken cancellationToken)
     {
+        await antiforgery.ValidateRequestAsync(httpContext);
+
         var result = await sender.Send(
             new CreateProductCommand(
                 request.Sku,

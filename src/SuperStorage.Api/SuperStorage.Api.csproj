@@ -1,17 +1,20 @@
-<Project Sdk="Microsoft.NET.Sdk.Web">
+﻿<Project Sdk="Microsoft.NET.Sdk.Web">
 
   <PropertyGroup>
     <TargetFramework>net10.0</TargetFramework>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
+    <UserSecretsId>b0c33183-d9aa-4b9f-8214-a93d4dd126d5</UserSecretsId>
   </PropertyGroup>
 
   <ItemGroup>
     <PackageReference Include="Microsoft.AspNetCore.OpenApi" />
+    <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.Server" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="../SuperStorage.Application/SuperStorage.Application.csproj" />
+    <ProjectReference Include="../SuperStorage.Client/SuperStorage.Client.csproj" />
     <ProjectReference Include="../SuperStorage.Contracts/SuperStorage.Contracts.csproj" />
     <ProjectReference Include="../SuperStorage.Infrastructure/SuperStorage.Infrastructure.csproj" />
   </ItemGroup>

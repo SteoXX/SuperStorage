@@ -1,0 +1,29 @@
+@page "/logout"
+@attribute [Authorize]
+@inject AuthApiClient AuthApiClient
+@inject CookieAuthenticationStateProvider AuthStateProvider
+@inject NavigationManager Navigation
+@inject ISnackbar Snackbar
+
+<MudContainer MaxWidth="MaxWidth.Small" Class="mt-8">
+    <MudPaper Class="pa-6" Elevation="2">
+        <MudText Typo="Typo.h5">Signing out...</MudText>
+    </MudPaper>
+</MudContainer>
+
+@code {
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            await AuthApiClient.LogoutAsync();
+            AuthStateProvider.NotifyUserLoggedOut();
+        }
+        catch (ApiException exception)
+        {
+            Snackbar.Add(exception.Message, Severity.Error);
+        }
+
+        Navigation.NavigateTo("login", replace: true);
+    }
+}

@@ -30,5 +30,7 @@
     "plaintext": true,
     "markdown": true
   },
-  "github.copilot.editor.enableAutoCompletions": true
+  "github.copilot.editor.enableAutoCompletions": true,
+  "entityframework.project": "src/SuperStorage.Infrastructure",
+  "entityframework.startupProject": "src/SuperStorage.Infrastructure"
 }
