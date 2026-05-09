@@ -1,0 +1,271 @@
+@page "/products"
+@attribute [Authorize(Policy = AuthPolicies.ProductsRead)]
+@inject ProductsApiClient ProductsApiClient
+@inject NavigationManager Navigation
+@inject ISnackbar Snackbar
+
+<PageTitle>Products</PageTitle>
+
+<MudStack Spacing="3">
+    <MudStack Row="true" AlignItems="AlignItems.Center" Justify="Justify.SpaceBetween">
+        <MudStack Spacing="1">
+            <MudText Typo="Typo.h4">Products</MudText>
+            <MudText Typo="Typo.body2">Search, inspect and maintain product master data.</MudText>
+        </MudStack>
+
+        <AuthorizeView Policy="@AuthPolicies.ProductsWrite">
+            <MudButton Variant="Variant.Filled"
+                       Color="Color.Primary"
+                       StartIcon="@Icons.Material.Filled.Add"
+                       Href="products/new">
+                New product
+            </MudButton>
+        </AuthorizeView>
+    </MudStack>
+
+    <MudPaper Class="pa-4" Elevation="1">
+        <MudStack Row="true" Spacing="2" AlignItems="AlignItems.End" Class="product-filter-bar">
+            <MudTextField @bind-Value="_searchTerm"
+                          Label="Search"
+                          Placeholder="Code or SKU"
+                          Immediate="true"
+                          Disabled="_isBusy" />
+
+            <MudSelect T="string"
+                       @bind-Value="_selectedCategoryId"
+                       Label="Category"
+                       Disabled="_isBusy">
+                <MudSelectItem T="string" Value="@AllValue">All categories</MudSelectItem>
+                @foreach (var category in _categories)
+                {
+                    <MudSelectItem T="string" Value="@category.Id.ToString()">@category.Name</MudSelectItem>
+                }
+            </MudSelect>
+
+            <MudSelect T="string"
+                       @bind-Value="_selectedStatus"
+                       Label="Status"
+                       Disabled="_isBusy">
+                <MudSelectItem T="string" Value="@AllValue">All</MudSelectItem>
+                <MudSelectItem T="string" Value="@ActiveValue">Active</MudSelectItem>
+                <MudSelectItem T="string" Value="@InactiveValue">Inactive</MudSelectItem>
+            </MudSelect>
+
+            <MudButton Variant="Variant.Filled"
+                       Color="Color.Primary"
+                       Disabled="_isBusy"
+                       StartIcon="@Icons.Material.Filled.Search"
+                       OnClick="SearchAsync">
+                Search
+            </MudButton>
+
+            <MudButton Variant="Variant.Text"
+                       Disabled="_isBusy"
+                       StartIcon="@Icons.Material.Filled.Refresh"
+                       OnClick="ResetAsync">
+                Reset
+            </MudButton>
+        </MudStack>
+    </MudPaper>
+
+    <MudPaper Elevation="1">
+        @if (_isBusy && _products is null)
+        {
+            <MudStack AlignItems="AlignItems.Center" Class="pa-8">
+                <MudProgressCircular Indeterminate="true" />
+            </MudStack>
+        }
+        else if (_products is null || _products.TotalCount == 0)
+        {
+            <MudStack AlignItems="AlignItems.Center" Class="pa-8" Spacing="2">
+                <MudIcon Icon="@Icons.Material.Filled.Inventory2" Size="Size.Large" />
+                <MudText Typo="Typo.h6">No products found</MudText>
+                <MudText Typo="Typo.body2">Adjust the filters or create the first product.</MudText>
+            </MudStack>
+        }
+        else
+        {
+            <MudTable Items="Products" Dense="true" Hover="true" Elevation="0">
+                <HeaderContent>
+                    <MudTh>Code</MudTh>
+                    <MudTh>SKU</MudTh>
+                    <MudTh>Category</MudTh>
+                    <MudTh>Status</MudTh>
+                    <MudTh>Updated</MudTh>
+                    <MudTh></MudTh>
+                </HeaderContent>
+                <RowTemplate Context="product">
+                    <MudTd DataLabel="Code">@product.Code</MudTd>
+                    <MudTd DataLabel="SKU">@product.Sku</MudTd>
+                    <MudTd DataLabel="Category">@DisplayCategory(product)</MudTd>
+                    <MudTd DataLabel="Status">
+                        <MudChip T="string" Size="Size.Small" Color="@(product.IsActive ? Color.Success : Color.Default)">
+                            @(product.IsActive ? "Active" : "Inactive")
+                        </MudChip>
+                    </MudTd>
+                    <MudTd DataLabel="Updated">@FormatDate(product.UpdatedAtUtc ?? product.CreatedAtUtc)</MudTd>
+                    <MudTd DataLabel="Actions" Class="product-actions">
+                        <MudButton Variant="Variant.Text"
+                                   Size="Size.Small"
+                                   StartIcon="@Icons.Material.Filled.Visibility"
+                                   Href="@($"products/{product.Id}")">
+                            View
+                        </MudButton>
+                        <AuthorizeView Policy="@AuthPolicies.ProductsWrite" Context="writeAuthState">
+                            <MudButton Variant="Variant.Text"
+                                       Size="Size.Small"
+                                       StartIcon="@Icons.Material.Filled.Edit"
+                                       Href="@($"products/{product.Id}/edit")">
+                                Edit
+                            </MudButton>
+                        </AuthorizeView>
+                    </MudTd>
+                </RowTemplate>
+            </MudTable>
+
+            <MudStack Row="true" AlignItems="AlignItems.Center" Justify="Justify.SpaceBetween" Class="pa-4">
+                <MudText Typo="Typo.body2">
+                    Page @_pageNumber of @Math.Max(_products.TotalPages, 1) - @_products.TotalCount products
+                </MudText>
+
+                <MudStack Row="true" Spacing="1">
+                    <MudButton Variant="Variant.Outlined"
+                               Disabled="@(!_products.HasPreviousPage || _isBusy)"
+                               OnClick="PreviousPageAsync">
+                        Previous
+                    </MudButton>
+                    <MudButton Variant="Variant.Outlined"
+                               Disabled="@(!_products.HasNextPage || _isBusy)"
+                               OnClick="NextPageAsync">
+                        Next
+                    </MudButton>
+                </MudStack>
+            </MudStack>
+        }
+    </MudPaper>
+</MudStack>
+
+@code {
+    private const string AllValue = "";
+    private const string ActiveValue = "active";
+    private const string InactiveValue = "inactive";
+    private const int PageSize = 20;
+
+    private IReadOnlyCollection<CategoryLookupResponse> _categories = [];
+    private PagedResult<ProductListItemResponse>? _products;
+    private string? _searchTerm;
+    private string _selectedCategoryId = AllValue;
+    private string _selectedStatus = ActiveValue;
+    private int _pageNumber = 1;
+    private bool _isBusy;
+
+    private IReadOnlyCollection<ProductListItemResponse> Products =>
+        _products?.Items ?? [];
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadLookupsAsync();
+        await LoadProductsAsync();
+    }
+
+    private async Task SearchAsync()
+    {
+        _pageNumber = 1;
+        await LoadProductsAsync();
+    }
+
+    private async Task ResetAsync()
+    {
+        _searchTerm = null;
+        _selectedCategoryId = AllValue;
+        _selectedStatus = ActiveValue;
+        _pageNumber = 1;
+        await LoadProductsAsync();
+    }
+
+    private async Task PreviousPageAsync()
+    {
+        if (_pageNumber <= 1)
+        {
+            return;
+        }
+
+        _pageNumber--;
+        await LoadProductsAsync();
+    }
+
+    private async Task NextPageAsync()
+    {
+        if (_products is null || !_products.HasNextPage)
+        {
+            return;
+        }
+
+        _pageNumber++;
+        await LoadProductsAsync();
+    }
+
+    private async Task LoadLookupsAsync()
+    {
+        try
+        {
+            _categories = await ProductsApiClient.GetCategoryLookupsAsync();
+        }
+        catch (ApiException exception)
+        {
+            Snackbar.Add(exception.Message, Severity.Error);
+        }
+    }
+
+    private async Task LoadProductsAsync()
+    {
+        _isBusy = true;
+
+        try
+        {
+            _products = await ProductsApiClient.SearchAsync(
+                _searchTerm,
+                ParseCategoryId(),
+                ParseStatus(),
+                _pageNumber,
+                PageSize);
+        }
+        catch (ApiException exception)
+        {
+            Snackbar.Add(exception.Message, Severity.Error);
+        }
+        finally
+        {
+            _isBusy = false;
+        }
+    }
+
+    private Guid? ParseCategoryId()
+    {
+        return Guid.TryParse(_selectedCategoryId, out var categoryId)
+            ? categoryId
+            : null;
+    }
+
+    private bool? ParseStatus()
+    {
+        return _selectedStatus switch
+        {
+            ActiveValue => true,
+            InactiveValue => false,
+            _ => null
+        };
+    }
+
+    private static string DisplayCategory(ProductListItemResponse product)
+    {
+        return string.IsNullOrWhiteSpace(product.CategoryName)
+            ? "-"
+            : product.CategoryName;
+    }
+
+    private static string FormatDate(DateTimeOffset value)
+    {
+        return value.ToLocalTime().ToString("yyyy-MM-dd HH:mm");
+    }
+}

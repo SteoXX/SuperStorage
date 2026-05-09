@@ -3,6 +3,8 @@ using Microsoft.AspNetCore.Antiforgery;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 using SuperStorage.Application.Features.Products.Commands.CreateProduct;
+using SuperStorage.Application.Features.Products.Commands.UpdateProduct;
+using SuperStorage.Application.Features.Products.Queries.GetCategoryLookups;
 using SuperStorage.Application.Features.Products.Queries.GetProductById;
 using SuperStorage.Application.Features.Products.Queries.SearchProducts;
 using SuperStorage.Contracts.Auth;
@@ -37,6 +39,19 @@ internal static class ProductEndpoints
             .ProducesProblem(StatusCodes.Status409Conflict)
             .RequireAuthorization(AuthPolicies.ProductsWrite);
 
+        group.MapPut("/{id:guid}", UpdateProductAsync)
+            .WithName("UpdateProduct")
+            .Produces<ProductResponse>()
+            .Produces(StatusCodes.Status404NotFound)
+            .ProducesValidationProblem()
+            .ProducesProblem(StatusCodes.Status409Conflict)
+            .RequireAuthorization(AuthPolicies.ProductsWrite);
+
+        group.MapGet("/categories/lookup", GetCategoryLookupsAsync)
+            .WithName("GetProductCategoryLookups")
+            .Produces<IReadOnlyCollection<CategoryLookupResponse>>()
+            .RequireAuthorization(AuthPolicies.ProductsRead);
+
         return app;
     }
 
@@ -48,6 +63,7 @@ internal static class ProductEndpoints
         var result = await sender.Send(
             new SearchProductsQuery(
                 request.SearchTerm,
+                request.CategoryId,
                 request.IsActive,
                 request.PageNumber,
                 request.PageSize),
@@ -79,16 +95,50 @@ internal static class ProductEndpoints
 
         var result = await sender.Send(
             new CreateProductCommand(
+                request.Code,
                 request.Sku,
-                request.Name,
-                request.Description),
+                request.Description,
+                request.CategoryId),
             cancellationToken);
 
         return TypedResults.Created($"/api/products/{result.Id}", result);
     }
 
+    private static async Task<Results<Ok<ProductResponse>, NotFound>> UpdateProductAsync(
+        Guid id,
+        [FromBody] UpdateProductRequest request,
+        HttpContext httpContext,
+        IAntiforgery antiforgery,
+        ISender sender,
+        CancellationToken cancellationToken)
+    {
+        await antiforgery.ValidateRequestAsync(httpContext);
+
+        var result = await sender.Send(
+            new UpdateProductCommand(
+                id,
+                request.Description,
+                request.CategoryId,
+                request.IsActive),
+            cancellationToken);
+
+        return result is null
+            ? TypedResults.NotFound()
+            : TypedResults.Ok(result);
+    }
+
+    private static async Task<Ok<IReadOnlyCollection<CategoryLookupResponse>>> GetCategoryLookupsAsync(
+        ISender sender,
+        CancellationToken cancellationToken)
+    {
+        var result = await sender.Send(new GetCategoryLookupsQuery(), cancellationToken);
+
+        return TypedResults.Ok(result);
+    }
+
     private sealed record SearchProductsRequest(
         string? SearchTerm = null,
+        Guid? CategoryId = null,
         bool? IsActive = null,
         int PageNumber = 1,
         int PageSize = 20);

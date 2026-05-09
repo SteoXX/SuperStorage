@@ -13,16 +13,20 @@ internal sealed class GetProductByIdQueryHandler(IQueryDbContext dbContext)
         CancellationToken cancellationToken)
     {
         var product = await dbContext.SingleOrDefaultAsync(
-            dbContext.Query<Product>().Where(product => product.Id == request.Id),
+            dbContext.Query<Product>()
+                .Where(product => product.Id == request.Id)
+                .Select(product => new ProductResponse(
+                    product.Id,
+                    product.Code,
+                    product.Sku.Value,
+                    product.CategoryId,
+                    product.Category == null ? null : product.Category.Name,
+                    product.Description,
+                    product.IsActive,
+                    product.CreatedAtUtc,
+                    product.UpdatedAtUtc)),
             cancellationToken);
 
-        return product is null
-            ? null
-            : new ProductResponse(
-                product.Id,
-                product.Sku.Value,
-                product.Name,
-                product.Description,
-                product.IsActive);
+        return product;
     }
 }

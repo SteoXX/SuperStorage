@@ -76,15 +76,17 @@ Le migrazioni sono codice di prodotto:
 Comandi:
 
 ```bash
-dotnet ef migrations add InitialIdentityAndWms \
+SUPERSTORAGE_CONNECTION_STRING="Host=localhost;Port=5432;Database=superstorage;Username=postgres;Password=postgres" \
+dotnet tool run dotnet-ef migrations add InitialIdentityAndWms \
   --project src/SuperStorage.Infrastructure \
-  --startup-project src/SuperStorage.Api \
   --output-dir Persistence/Migrations
 
-dotnet ef database update \
-  --project src/SuperStorage.Infrastructure \
-  --startup-project src/SuperStorage.Api
+SUPERSTORAGE_CONNECTION_STRING="Host=localhost;Port=5432;Database=superstorage;Username=postgres;Password=postgres" \
+dotnet tool run dotnet-ef database update \
+  --project src/SuperStorage.Infrastructure
 ```
+
+Le migration si applicano direttamente dal progetto `SuperStorage.Infrastructure`, usando `SuperStorageDbContextFactory` e la variabile ambiente `SUPERSTORAGE_CONNECTION_STRING`. Non usare `SuperStorage.Api` come startup project per il workflow standard delle migration.
 
 ## Query
 

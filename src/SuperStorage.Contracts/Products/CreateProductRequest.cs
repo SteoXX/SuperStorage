@@ -1,6 +1,7 @@
 namespace SuperStorage.Contracts.Products;
 
 public sealed record CreateProductRequest(
+    string Code,
     string Sku,
-    string Name,
-    string? Description);
+    string? Description,
+    Guid? CategoryId);

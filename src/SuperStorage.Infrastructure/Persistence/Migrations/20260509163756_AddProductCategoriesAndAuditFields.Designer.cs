@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using SuperStorage.Infrastructure.Persistence;
@@ -11,9 +12,11 @@ using SuperStorage.Infrastructure.Persistence;
 namespace SuperStorage.Infrastructure.Persistence.Migrations
 {
     [DbContext(typeof(WmsDbContext))]
-    partial class WmsDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260509163756_AddProductCategoriesAndAuditFields")]
+    partial class AddProductCategoriesAndAuditFields
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -186,6 +189,11 @@ namespace SuperStorage.Infrastructure.Persistence.Migrations
                         .HasColumnType("boolean")
                         .HasDefaultValue(true);
 
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
+
                     b.Property<string>("Sku")
                         .IsRequired()
                         .HasMaxLength(64)
@@ -200,6 +208,8 @@ namespace SuperStorage.Infrastructure.Persistence.Migrations
 
                     b.HasIndex("Code")
                         .IsUnique();
+
+                    b.HasIndex("Name");
 
                     b.HasIndex("Sku")
                         .IsUnique();

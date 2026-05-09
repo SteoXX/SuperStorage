@@ -1,36 +1,69 @@
 using MediatR;
+using SuperStorage.Application.Abstractions.Persistence;
 using SuperStorage.Contracts.Products;
 using SuperStorage.Domain.Products;
 
 namespace SuperStorage.Application.Features.Products.Commands.CreateProduct;
 
-internal sealed class CreateProductCommandHandler(IProductRepository productRepository)
+internal sealed class CreateProductCommandHandler(
+    IProductRepository productRepository,
+    IQueryDbContext dbContext)
     : IRequestHandler<CreateProductCommand, ProductResponse>
 {
     public async Task<ProductResponse> Handle(
         CreateProductCommand request,
         CancellationToken cancellationToken)
     {
+        var code = Product.NormalizeCode(request.Code);
         var sku = Sku.Create(request.Sku);
+
+        if (await productRepository.ExistsByCodeAsync(code, cancellationToken))
+        {
+            throw new InvalidOperationException($"Product with code '{code}' already exists.");
+        }
 
         if (await productRepository.ExistsBySkuAsync(sku, cancellationToken))
         {
             throw new InvalidOperationException($"Product with SKU '{sku.Value}' already exists.");
         }
 
+        if (request.CategoryId is not null &&
+            !await CategoryExistsAsync(request.CategoryId.Value, cancellationToken))
+        {
+            throw new InvalidOperationException("The selected category does not exist.");
+        }
+
+        var createdAtUtc = DateTimeOffset.UtcNow;
         var product = Product.Create(
             Guid.NewGuid(),
+            code,
             sku,
-            request.Name,
-            request.Description);
+            request.Description,
+            request.CategoryId,
+            createdAtUtc);
 
         await productRepository.AddAsync(product, cancellationToken);
 
         return new ProductResponse(
             product.Id,
+            product.Code,
             product.Sku.Value,
-            product.Name,
+            product.CategoryId,
+            null,
             product.Description,
-            product.IsActive);
+            product.IsActive,
+            product.CreatedAtUtc,
+            product.UpdatedAtUtc);
+    }
+
+    private async Task<bool> CategoryExistsAsync(
+        Guid categoryId,
+        CancellationToken cancellationToken)
+    {
+        var total = await dbContext.CountAsync(
+            dbContext.Query<Category>().Where(category => category.Id == categoryId),
+            cancellationToken);
+
+        return total > 0;
     }
 }

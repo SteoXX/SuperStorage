@@ -19,11 +19,16 @@ internal sealed class SearchProductsQueryHandler(IQueryDbContext dbContext)
         {
             var searchTerm = request.SearchTerm.Trim().ToUpperInvariant();
 
-            query = TryCreateSku(searchTerm, out var sku)
-                ? query.Where(product =>
-                    product.Name.ToUpper().Contains(searchTerm) ||
-                    product.Sku == sku)
-                : query.Where(product => product.Name.ToUpper().Contains(searchTerm));
+            var hasSku = TryCreateSku(searchTerm, out var sku);
+
+            query = query.Where(product =>
+                product.Code.ToUpper().Contains(searchTerm) ||
+                (hasSku && product.Sku == sku));
+        }
+
+        if (request.CategoryId.HasValue)
+        {
+            query = query.Where(product => product.CategoryId == request.CategoryId.Value);
         }
 
         if (request.IsActive.HasValue)
@@ -35,23 +40,24 @@ internal sealed class SearchProductsQueryHandler(IQueryDbContext dbContext)
 
         var products = await dbContext.ToListAsync(
             query
-                .OrderBy(product => product.Name)
+                .OrderBy(product => product.Code)
                 .ThenBy(product => product.Id)
                 .Skip((request.PageNumber - 1) * request.PageSize)
-                .Take(request.PageSize),
+                .Take(request.PageSize)
+                .Select(product => new ProductListItemResponse(
+                    product.Id,
+                    product.Code,
+                    product.Sku.Value,
+                    product.CategoryId,
+                    product.Category == null ? null : product.Category.Name,
+                    product.Description,
+                    product.IsActive,
+                    product.CreatedAtUtc,
+                    product.UpdatedAtUtc)),
             cancellationToken);
 
-        var items = products
-            .Select(product => new ProductListItemResponse(
-                product.Id,
-                product.Sku.Value,
-                product.Name,
-                product.Description,
-                product.IsActive))
-            .ToList();
-
         return new PagedResult<ProductListItemResponse>(
-            items,
+            products,
             request.PageNumber,
             request.PageSize,
             totalCount);
@@ -70,4 +76,5 @@ internal sealed class SearchProductsQueryHandler(IQueryDbContext dbContext)
             return false;
         }
     }
+
 }

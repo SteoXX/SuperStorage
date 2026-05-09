@@ -7,6 +7,24 @@ namespace SuperStorage.Infrastructure.Persistence.Repositories;
 internal sealed class ProductRepository(WmsDbContext dbContext)
     : Repository<Product, Guid>(dbContext), IProductRepository
 {
+    public async Task<Product?> GetByCodeAsync(
+        string code,
+        CancellationToken cancellationToken = default)
+    {
+        return await DbContext
+            .Set<Product>()
+            .SingleOrDefaultAsync(product => product.Code == code, cancellationToken);
+    }
+
+    public async Task<bool> ExistsByCodeAsync(
+        string code,
+        CancellationToken cancellationToken = default)
+    {
+        return await DbContext
+            .Set<Product>()
+            .AnyAsync(product => product.Code == code, cancellationToken);
+    }
+
     public async Task<Product?> GetBySkuAsync(
         Sku sku,
         CancellationToken cancellationToken = default)

@@ -32,7 +32,7 @@ Usare value object typed id migliora espressività e riduce errori, ma aumenta c
 
 ## Value object consigliati
 
-- `Sku`: normalizzato, trim, uppercase, lunghezza e caratteri ammessi.
+- `Sku`: stock keeping unit, normalizzato, trim, uppercase, lunghezza e caratteri ammessi.
 - `Quantity`: decimal positivo con precisione controllata.
 - `Money`: amount + currency se si gestiscono prezzi.
 - `Barcode`: opzionale.
@@ -47,16 +47,26 @@ Usare value object typed id migliora espressività e riduce errori, ma aumenta c
 
 Responsabilità:
 
+- codice prodotto immutabile;
 - identità SKU;
-- nome e descrizione;
+- descrizione;
 - categoria;
 - unità di misura base;
 - barcode;
 - soglie scorta;
 - flag tracciabilità lotto/seriale;
 - stato attivo/disattivo.
+- timestamp `CreatedAtUtc` e `UpdatedAtUtc` per tracciabilita' applicativa.
 
 Non dovrebbe contenere direttamente giacenze: lo stock è dominio Inventory.
+
+Scelta implementativa attuale:
+
+- `Code` e `Sku` sono entrambi presenti e univoci;
+- `Code` e' una stringa semplice validata dal dominio, non un value object;
+- `Code` e `Sku` non sono modificabili dalla UI di edit;
+- `Description`, `CategoryId` e `IsActive` sono modificabili;
+- `CategoryId` e' opzionale per permettere prodotti non ancora classificati.
 
 ### Category
 

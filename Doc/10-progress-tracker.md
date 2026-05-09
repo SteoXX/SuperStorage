@@ -39,9 +39,9 @@ Manca qualcosa prima di passare alla prossima?
 | Repository base | Done | Repository write model e read model con query no-tracking disponibili. |
 | Identity / Auth cookie / BFF | Done | Identity, cookie HttpOnly, antiforgery, BFF same-origin e UI auth implementati. |
 | Authorization policies | Done | Policy base per prodotti e gestione utenti definite. |
-| Product aggregate | Partial | Aggregate, value object, repository, command/query, API presenti. Manca UI completa e test. |
-| Product API | Partial | Endpoint protetti presenti. Da completare con update/delete, paginazione e test integration. |
-| UI Blazor/MudBlazor | Partial | Login/register/logout e navigazione auth presenti. Residui template rimossi. UI gestionale prodotto ancora da implementare. |
+| Product aggregate | Partial | Aggregate, value object, category link, audit fields, repository, command/query, API presenti. Mancano test. |
+| Product API | Partial | Endpoint protetti per lista/dettaglio/create/update presenti. Da completare delete/disattivazione dedicata e test integration. |
+| UI Blazor/MudBlazor | Partial | Login/register/logout, navigazione auth e pagine prodotto presenti. Mancano polish, test UI e gestione categorie completa. |
 | Logging / Observability | Planned | Serilog, health checks, correlation id e audit ancora da implementare. |
 | Inventory / Movements | Planned | Non iniziato. |
 | Customers / Suppliers / Orders | Planned | Non iniziato. |
@@ -61,7 +61,7 @@ Usare questi ID quando aggiorniamo il progresso o quando dobbiamo riprendere una
 | `REPOSITORY` | Repository base e query no-tracking | Done | `src/SuperStorage.Application/Abstractions/Persistence`, `src/SuperStorage.Infrastructure/Persistence/Repositories` |
 | `AUTH-BFF` | Identity, cookie auth, CSRF, hosted WASM BFF | Done | `Doc/Auth/`, `src/SuperStorage.Api/Endpoints/AuthEndpoints.cs`, `src/SuperStorage.Client/Auth` |
 | `PRODUCTS` | Product aggregate, handlers, repository, API | Partial | `src/SuperStorage.Domain/Products`, `src/SuperStorage.Application/Features/Products`, `src/SuperStorage.Api/Endpoints/ProductEndpoints.cs` |
-| `PRODUCTS-UI` | UI gestione prodotti | Planned | `src/SuperStorage.Client` |
+| `PRODUCTS-UI` | UI gestione prodotti | Partial | `src/SuperStorage.Client/Pages/Products`, `src/SuperStorage.Client/Services/ApiClients/ProductsApiClient.cs` |
 | `OBSERVABILITY` | Logging, health checks, audit, diagnostics | Planned | `Doc/08-osservabilita-deploy.md` |
 | `INVENTORY` | Giacenze e movimenti | Planned | Da definire |
 | `PARTIES` | Clienti e fornitori | Planned | Da definire |
@@ -190,17 +190,23 @@ Completato:
 
 - aggregate root `Product`;
 - value object `Sku`;
+- `Code` come stringa semplice validata dal dominio;
+- entity/aggregate `Category` con relazione opzionale su Product;
+- campi audit `CreatedAtUtc` e `UpdatedAtUtc`;
 - repository prodotto;
 - query/command/handler iniziali;
 - configurazione EF;
-- API products protette.
+- API products protette;
+- migration `AddProductCategoriesAndAuditFields`;
+- migration `RemoveProductNameAndUseStringCode`;
+- typed client Blazor per prodotti;
+- pagine lista, creazione, dettaglio ed edit prodotto.
 
 Da fare:
 
-- UI gestione prodotti;
-- update prodotto;
-- delete/disattivazione prodotto;
-- paginazione e filtri;
+- gestione CRUD categorie;
+- delete/disattivazione dedicata prodotto se serve separarla dall'edit;
+- migliorare paginazione/filtri;
 - test unit e integration.
 
 ### UI cleanup iniziale

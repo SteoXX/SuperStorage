@@ -15,6 +15,8 @@ public sealed class WmsDbContext(DbContextOptions<WmsDbContext> options)
     public const string LoggingSchema = "Logging";
 
     // ==== DbSets ====
+    public DbSet<Category> Categories => Set<Category>();
+
     public DbSet<Product> Products => Set<Product>();
 
     protected override void OnModelCreating(ModelBuilder builder)

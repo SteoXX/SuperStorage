@@ -1,50 +1,71 @@
+using System.Text.RegularExpressions;
 using SuperStorage.Domain.Common;
 
 namespace SuperStorage.Domain.Products;
 
-public sealed class Product : AggregateRoot<Guid>
+public sealed partial class Product : AggregateRoot<Guid>
 {
-    public const int NameMaxLength = 200;
+    public const int CodeMaxLength = 64;
     public const int DescriptionMaxLength = 1000;
 
     private Product(
         Guid id,
+        string code,
         Sku sku,
-        string name,
-        string? description)
+        string? description,
+        Guid? categoryId,
+        DateTimeOffset createdAtUtc)
         : base(id)
     {
+        Code = NormalizeCode(code);
         Sku = sku;
-        Name = NormalizeName(name);
         Description = NormalizeDescription(description);
+        CategoryId = categoryId;
         IsActive = true;
+        CreatedAtUtc = createdAtUtc;
     }
 
     private Product()
     {
     }
 
-    public Sku Sku { get; private set; } = null!;
+    public string Code { get; private set; } = string.Empty;
 
-    public string Name { get; private set; } = string.Empty;
+    public Sku Sku { get; private set; } = null!;
 
     public string? Description { get; private set; }
 
+    public Guid? CategoryId { get; private set; }
+
+    public Category? Category { get; private set; }
+
     public bool IsActive { get; private set; }
+
+    public DateTimeOffset CreatedAtUtc { get; private set; }
+
+    public DateTimeOffset? UpdatedAtUtc { get; private set; }
 
     public static Product Create(
         Guid id,
+        string code,
         Sku sku,
-        string name,
-        string? description = null)
+        string? description,
+        Guid? categoryId,
+        DateTimeOffset createdAtUtc)
     {
-        return new Product(id, sku, name, description);
+        return new Product(id, code, sku, description, categoryId, createdAtUtc);
     }
 
-    public void UpdateDetails(string name, string? description)
+    public void UpdateDetails(
+        string? description,
+        Guid? categoryId,
+        bool isActive,
+        DateTimeOffset updatedAtUtc)
     {
-        Name = NormalizeName(name);
         Description = NormalizeDescription(description);
+        CategoryId = categoryId;
+        IsActive = isActive;
+        UpdatedAtUtc = updatedAtUtc;
     }
 
     public void Activate()
@@ -57,18 +78,23 @@ public sealed class Product : AggregateRoot<Guid>
         IsActive = false;
     }
 
-    private static string NormalizeName(string name)
+    public static string NormalizeCode(string code)
     {
-        if (string.IsNullOrWhiteSpace(name))
+        if (string.IsNullOrWhiteSpace(code))
         {
-            throw new ArgumentException("Product name cannot be empty.", nameof(name));
+            throw new ArgumentException("Product code cannot be empty.", nameof(code));
         }
 
-        var normalized = name.Trim();
+        var normalized = code.Trim().ToUpperInvariant();
 
-        if (normalized.Length > NameMaxLength)
+        if (normalized.Length > CodeMaxLength)
         {
-            throw new ArgumentException($"Product name cannot exceed {NameMaxLength} characters.", nameof(name));
+            throw new ArgumentException($"Product code cannot exceed {CodeMaxLength} characters.", nameof(code));
+        }
+
+        if (!CodePattern().IsMatch(normalized))
+        {
+            throw new ArgumentException("Product code can contain only letters, numbers, dots, dashes and underscores.", nameof(code));
         }
 
         return normalized;
@@ -90,4 +116,7 @@ public sealed class Product : AggregateRoot<Guid>
 
         return normalized;
     }
+
+    [GeneratedRegex("^[A-Z0-9._-]+$")]
+    private static partial Regex CodePattern();
 }

@@ -1,0 +1,177 @@
+@page "/products/{Id:guid}/edit"
+@attribute [Authorize(Policy = AuthPolicies.ProductsWrite)]
+@inject ProductsApiClient ProductsApiClient
+@inject NavigationManager Navigation
+@inject ISnackbar Snackbar
+
+<PageTitle>Edit Product</PageTitle>
+
+@if (_isLoading)
+{
+    <MudStack AlignItems="AlignItems.Center" Class="pa-8">
+        <MudProgressCircular Indeterminate="true" />
+    </MudStack>
+}
+else if (_product is null)
+{
+    <MudAlert Severity="Severity.Warning">Product not found.</MudAlert>
+}
+else
+{
+    <MudStack Spacing="3">
+        <MudStack Row="true" AlignItems="AlignItems.Center" Justify="Justify.SpaceBetween">
+            <MudStack Spacing="1">
+                <MudText Typo="Typo.h4">Edit product</MudText>
+                <MudText Typo="Typo.body2">@_product.Code - @_product.Sku</MudText>
+            </MudStack>
+
+            <MudButton Variant="Variant.Text"
+                       StartIcon="@Icons.Material.Filled.ArrowBack"
+                       Href="@($"/products/{Id}")">
+                Back
+            </MudButton>
+        </MudStack>
+
+        <MudPaper Class="pa-4" Elevation="1">
+            <MudForm @ref="_form">
+                <MudStack Spacing="3">
+                    <MudTextField Value="@_product.Code"
+                                  Label="Code"
+                                  Disabled="true" />
+
+                    <MudTextField Value="@_product.Sku"
+                                  Label="SKU"
+                                  Disabled="true" />
+
+                    <MudSelect T="string"
+                               @bind-Value="_model.CategoryId"
+                               Label="Category"
+                               Disabled="_isBusy">
+                        <MudSelectItem T="string" Value="@NoCategoryValue">No category</MudSelectItem>
+                        @foreach (var category in _categories)
+                        {
+                            <MudSelectItem T="string" Value="@category.Id.ToString()">@category.Name</MudSelectItem>
+                        }
+                    </MudSelect>
+
+                    <MudTextField @bind-Value="_model.Description"
+                                  Label="Description"
+                                  Lines="4"
+                                  Disabled="_isBusy" />
+
+                    <MudCheckBox @bind-Value="_model.IsActive"
+                                 Label="Active"
+                                 Disabled="_isBusy" />
+
+                    <MudStack Row="true" Justify="Justify.FlexEnd" Spacing="2">
+                        <MudButton Variant="Variant.Text"
+                                   Disabled="_isBusy"
+                                   Href="@($"/products/{Id}")">
+                            Cancel
+                        </MudButton>
+
+                        <MudButton Variant="Variant.Filled"
+                                   Color="Color.Primary"
+                                   Disabled="_isBusy"
+                                   StartIcon="@Icons.Material.Filled.Save"
+                                   OnClick="SubmitAsync">
+                            Save
+                        </MudButton>
+                    </MudStack>
+                </MudStack>
+            </MudForm>
+        </MudPaper>
+    </MudStack>
+}
+
+@code {
+    private const string NoCategoryValue = "";
+
+    private readonly ProductEditModel _model = new();
+    private IReadOnlyCollection<CategoryLookupResponse> _categories = [];
+    private ProductResponse? _product;
+    private MudForm? _form;
+    private bool _isLoading = true;
+    private bool _isBusy;
+
+    [Parameter]
+    public Guid Id { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            _categories = await ProductsApiClient.GetCategoryLookupsAsync();
+            _product = await ProductsApiClient.GetByIdAsync(Id);
+
+            if (_product is not null)
+            {
+                _model.Description = _product.Description;
+                _model.CategoryId = _product.CategoryId?.ToString() ?? NoCategoryValue;
+                _model.IsActive = _product.IsActive;
+            }
+        }
+        catch (ApiException exception)
+        {
+            Snackbar.Add(exception.Message, Severity.Error);
+        }
+        finally
+        {
+            _isLoading = false;
+        }
+    }
+
+    private async Task SubmitAsync()
+    {
+        if (_form is null)
+        {
+            return;
+        }
+
+        await _form.ValidateAsync();
+
+        if (!_form.IsValid)
+        {
+            return;
+        }
+
+        _isBusy = true;
+
+        try
+        {
+            var product = await ProductsApiClient.UpdateAsync(
+                Id,
+                new UpdateProductRequest(
+                    _model.Description,
+                    ParseCategoryId(_model.CategoryId),
+                    _model.IsActive));
+
+            Snackbar.Add("Product updated.", Severity.Success);
+            Navigation.NavigateTo($"/products/{product.Id}");
+        }
+        catch (ApiException exception)
+        {
+            Snackbar.Add(exception.Message, Severity.Error);
+        }
+        finally
+        {
+            _isBusy = false;
+        }
+    }
+
+    private static Guid? ParseCategoryId(string value)
+    {
+        return Guid.TryParse(value, out var categoryId)
+            ? categoryId
+            : null;
+    }
+
+    private sealed class ProductEditModel
+    {
+        public string CategoryId { get; set; } = NoCategoryValue;
+
+        public string? Description { get; set; }
+
+        public bool IsActive { get; set; }
+    }
+}

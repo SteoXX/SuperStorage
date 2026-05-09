@@ -1,7 +1,10 @@
 <MudNavMenu>
     <MudNavLink Href="" Match="NavLinkMatch.All" Icon="@Icons.Material.Filled.Dashboard">Dashboard</MudNavLink>
-    <AuthorizeView>
+    <AuthorizeView Context="authState">
         <Authorized>
+            <AuthorizeView Policy="@AuthPolicies.ProductsRead" Context="productsAuthState">
+                <MudNavLink Href="products" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.Inventory2">Products</MudNavLink>
+            </AuthorizeView>
             <MudNavLink Href="logout" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.Logout">Logout</MudNavLink>
         </Authorized>
         <NotAuthorized>

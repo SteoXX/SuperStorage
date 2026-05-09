@@ -99,3 +99,19 @@ html, body {
 code {
     color: #c02d76;
 }
+
+.product-filter-bar {
+    flex-wrap: wrap;
+}
+
+.product-filter-bar > * {
+    min-width: 12rem;
+}
+
+.product-actions {
+    white-space: nowrap;
+}
+
+.mud-snackbar-location-bottom-center {
+    bottom: 2rem;
+}

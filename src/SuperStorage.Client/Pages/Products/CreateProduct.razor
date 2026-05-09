@@ -1,0 +1,139 @@
+@page "/products/new"
+@attribute [Authorize(Policy = AuthPolicies.ProductsWrite)]
+@inject ProductsApiClient ProductsApiClient
+@inject NavigationManager Navigation
+@inject ISnackbar Snackbar
+
+<PageTitle>New Product</PageTitle>
+
+<MudStack Spacing="3">
+        <MudStack Row="true" AlignItems="AlignItems.Center" Justify="Justify.SpaceBetween">
+            <MudStack Spacing="1">
+                <MudText Typo="Typo.h4">New product</MudText>
+            <MudText Typo="Typo.body2">Create a product master record.</MudText>
+        </MudStack>
+
+        <MudButton Variant="Variant.Text"
+                   StartIcon="@Icons.Material.Filled.ArrowBack"
+                   Href="products">
+            Back
+        </MudButton>
+    </MudStack>
+
+    <MudPaper Class="pa-4" Elevation="1">
+        <MudForm @ref="_form">
+            <MudStack Spacing="3">
+                <MudTextField @bind-Value="_model.Code"
+                              Label="Code"
+                              Required="true"
+                              Disabled="_isBusy" />
+
+                <MudTextField @bind-Value="_model.Sku"
+                              Label="SKU"
+                              Required="true"
+                              Disabled="_isBusy" />
+
+                <MudSelect T="string"
+                           @bind-Value="_model.CategoryId"
+                           Label="Category"
+                           Disabled="_isBusy">
+                    <MudSelectItem T="string" Value="@NoCategoryValue">No category</MudSelectItem>
+                    @foreach (var category in _categories)
+                    {
+                        <MudSelectItem T="string" Value="@category.Id.ToString()">@category.Name</MudSelectItem>
+                    }
+                </MudSelect>
+
+                <MudTextField @bind-Value="_model.Description"
+                              Label="Description"
+                              Lines="4"
+                              Disabled="_isBusy" />
+
+                <MudStack Row="true" Justify="Justify.FlexEnd" Spacing="2">
+                    <MudButton Variant="Variant.Text"
+                               Disabled="_isBusy"
+                               Href="products">
+                        Cancel
+                    </MudButton>
+
+                    <MudButton Variant="Variant.Filled"
+                               Color="Color.Primary"
+                               Disabled="_isBusy"
+                               StartIcon="@Icons.Material.Filled.Save"
+                               OnClick="SubmitAsync">
+                        Create
+                    </MudButton>
+                </MudStack>
+            </MudStack>
+        </MudForm>
+    </MudPaper>
+</MudStack>
+
+@code {
+    private const string NoCategoryValue = "";
+
+    private readonly ProductFormModel _model = new();
+    private IReadOnlyCollection<CategoryLookupResponse> _categories = [];
+    private MudForm? _form;
+    private bool _isBusy;
+
+    protected override async Task OnInitializedAsync()
+    {
+        _categories = await ProductsApiClient.GetCategoryLookupsAsync();
+    }
+
+    private async Task SubmitAsync()
+    {
+        if (_form is null)
+        {
+            return;
+        }
+
+        await _form.ValidateAsync();
+
+        if (!_form.IsValid)
+        {
+            return;
+        }
+
+        _isBusy = true;
+
+        try
+        {
+            var product = await ProductsApiClient.CreateAsync(new CreateProductRequest(
+                _model.Code,
+                _model.Sku,
+                _model.Description,
+                ParseCategoryId(_model.CategoryId)));
+
+            Snackbar.Add("Product created.", Severity.Success);
+            Navigation.NavigateTo($"/products/{product.Id}");
+        }
+        catch (ApiException exception)
+        {
+            Snackbar.Add(exception.Message, Severity.Error);
+        }
+        finally
+        {
+            _isBusy = false;
+        }
+    }
+
+    private static Guid? ParseCategoryId(string value)
+    {
+        return Guid.TryParse(value, out var categoryId)
+            ? categoryId
+            : null;
+    }
+
+    private sealed class ProductFormModel
+    {
+        public string Code { get; set; } = string.Empty;
+
+        public string Sku { get; set; } = string.Empty;
+
+        public string CategoryId { get; set; } = NoCategoryValue;
+
+        public string? Description { get; set; }
+    }
+}

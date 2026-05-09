@@ -2,7 +2,11 @@ namespace SuperStorage.Contracts.Products;
 
 public sealed record ProductListItemResponse(
     Guid Id,
+    string Code,
     string Sku,
-    string Name,
+    Guid? CategoryId,
+    string? CategoryName,
     string? Description,
-    bool IsActive);
+    bool IsActive,
+    DateTimeOffset CreatedAtUtc,
+    DateTimeOffset? UpdatedAtUtc);

@@ -13,15 +13,15 @@ internal sealed class ProductConfiguration : IEntityTypeConfiguration<Product>
 
         builder.HasKey(product => product.Id);
 
+        builder.Property(product => product.Code)
+            .HasMaxLength(Product.CodeMaxLength)
+            .IsRequired();
+
         builder.Property(product => product.Sku)
             .HasConversion(
                 sku => sku.Value,
                 value => Sku.Create(value))
             .HasMaxLength(64)
-            .IsRequired();
-
-        builder.Property(product => product.Name)
-            .HasMaxLength(Product.NameMaxLength)
             .IsRequired();
 
         builder.Property(product => product.Description)
@@ -31,9 +31,22 @@ internal sealed class ProductConfiguration : IEntityTypeConfiguration<Product>
             .HasDefaultValue(true)
             .IsRequired();
 
+        builder.Property(product => product.CreatedAtUtc)
+            .IsRequired();
+
+        builder.Property(product => product.UpdatedAtUtc);
+
+        builder.HasOne(product => product.Category)
+            .WithMany(category => category.Products)
+            .HasForeignKey(product => product.CategoryId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        builder.HasIndex(product => product.Code)
+            .IsUnique();
+
         builder.HasIndex(product => product.Sku)
             .IsUnique();
 
-        builder.HasIndex(product => product.Name);
+        builder.HasIndex(product => product.CategoryId);
     }
 }
