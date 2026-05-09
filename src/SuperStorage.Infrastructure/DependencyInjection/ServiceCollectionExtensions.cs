@@ -1,4 +1,3 @@
-using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
@@ -49,6 +48,9 @@ public static class ServiceCollectionExtensions
             services.AddScoped<IQueryDbContext>(provider => provider.GetRequiredService<WmsDbContext>());
             services.AddScoped<IUnitOfWork, UnitOfWork>();
 
+            // Register repositories by convention
+            RegisterRepositories(services);
+
             return services;
         }
     }
@@ -66,5 +68,29 @@ public static class ServiceCollectionExtensions
         options.Lockout.AllowedForNewUsers = true;
         options.Lockout.MaxFailedAccessAttempts = 5;
         options.Lockout.DefaultLockoutTimeSpan = TimeSpan.FromMinutes(15);
+    }
+
+    /// <summary>
+    ///     Registers all repository implementations in the assembly by convention.
+    ///     
+    ///     Convention: For a repository implementation named 'ProductRepository', it should implement an interface named 'IProductRepository'.
+    /// </summary>
+    private static void RegisterRepositories(IServiceCollection services)
+    {
+        var assembly = typeof(ServiceCollectionExtensions).Assembly;
+
+        var repositoryTypes = assembly.GetTypes()
+            .Where(t => t.IsClass && !t.IsAbstract && t.Name.EndsWith("Repository"));
+
+        foreach (var implementationType in repositoryTypes)
+        {
+            var interfaceType = implementationType.GetInterfaces()
+                .FirstOrDefault(i => i.Name == $"I{implementationType.Name}");
+
+            if (interfaceType is not null)
+            {
+                services.AddScoped(interfaceType, implementationType);
+            }
+        }
     }
 }

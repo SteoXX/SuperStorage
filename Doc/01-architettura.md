@@ -124,6 +124,7 @@ Convenzioni obbligatorie per handler, repository, query service e typed HTTP cli
 - accettare sempre un `CancellationToken`;
 - inoltrare sempre il `CancellationToken` alle chiamate successive: MediatR, EF Core, HTTP client, file/storage, servizi esterni;
 - evitare sync-over-async come `.Result`, `.Wait()` o `GetAwaiter().GetResult()`.
+- per controlli null su oggetti usare sempre pattern matching `is null` e `is not null`, non `== null` o `!= null`.
 
 Pipeline behavior consigliati, in ordine:
 

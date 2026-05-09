@@ -8,22 +8,24 @@ internal abstract class Repository<TAggregate, TId>(WmsDbContext dbContext)
     where TAggregate : AggregateRoot<TId>
     where TId : notnull
 {
+    protected WmsDbContext DbContext { get; } = dbContext;
+
     public async Task<TAggregate?> GetByIdAsync(
         TId id,
         CancellationToken cancellationToken = default)
     {
-        return await dbContext.Set<TAggregate>().FindAsync([id], cancellationToken);
+        return await DbContext.Set<TAggregate>().FindAsync([id], cancellationToken);
     }
 
     public async Task AddAsync(
         TAggregate aggregate,
         CancellationToken cancellationToken = default)
     {
-        await dbContext.Set<TAggregate>().AddAsync(aggregate, cancellationToken);
+        await DbContext.Set<TAggregate>().AddAsync(aggregate, cancellationToken);
     }
 
     public void Remove(TAggregate aggregate)
     {
-        dbContext.Set<TAggregate>().Remove(aggregate);
+        DbContext.Set<TAggregate>().Remove(aggregate);
     }
 }
