@@ -28,46 +28,47 @@ Manca qualcosa prima di passare alla prossima?
 
 ## Stato generale
 
-| Area | Stato | Note |
-|---|---|---|
-| Documentazione progetto | Partial | Struttura `Doc` creata con architettura, sicurezza, UI, test, osservabilita' e roadmap. |
-| Clean Architecture | Partial | Progetti separati gia' presenti e convenzioni iniziali definite. Da completare con test architetturali. |
-| MediatR | Done | `ICommand`, `IQuery`, handler e pipeline behavior configurati. |
-| Validation | Done | FluentValidation collegato tramite pipeline behavior. |
-| Unit of Work / Transaction behavior | Done | I command passano da behavior transazionale tramite unit of work. |
-| EF Core / DbContext | Done | `WmsDbContext` configurato con Identity e schema/naming PascalCase. |
-| Repository base | Done | Repository write model e read model con query no-tracking disponibili. |
-| Identity / Auth cookie / BFF | Done | Identity, cookie HttpOnly, antiforgery, BFF same-origin e UI auth implementati. |
-| Authorization policies | Done | Policy base per prodotti e gestione utenti definite. |
-| Product aggregate | Partial | Aggregate, value object, category link, audit fields, repository, command/query, API presenti. Mancano test. |
-| Product API | Partial | Endpoint protetti per lista/dettaglio/create/update presenti. Da completare delete/disattivazione dedicata e test integration. |
-| UI Blazor/MudBlazor | Partial | Login/register/logout, navigazione auth e pagine prodotto presenti. Mancano polish, test UI e gestione categorie completa. |
-| Logging / Observability | Planned | Serilog, health checks, correlation id e audit ancora da implementare. |
-| Inventory / Movements | Planned | Non iniziato. |
-| Customers / Suppliers / Orders | Planned | Non iniziato. |
-| Reporting | Planned | Non iniziato. |
-| Tests | Planned | Da aggiungere unit, integration e architecture tests. |
+| Area                                | Stato   | Note                                                                                                                     |
+| ----------------------------------- | ------- | ------------------------------------------------------------------------------------------------------------------------ |
+| Documentazione progetto             | Partial | Struttura `Doc` creata con architettura, sicurezza, UI, test, osservabilita' e roadmap.                                  |
+| Clean Architecture                  | Partial | Progetti separati gia' presenti e convenzioni iniziali definite. Da completare con test architetturali.                  |
+| MediatR                             | Done    | `ICommand`, `IQuery`, handler e pipeline behavior configurati.                                                           |
+| Validation                          | Done    | FluentValidation collegato tramite pipeline behavior.                                                                    |
+| Unit of Work / Transaction behavior | Done    | I command passano da behavior transazionale tramite unit of work.                                                        |
+| EF Core / DbContext                 | Done    | `WmsDbContext` configurato con Identity e schema/naming PascalCase.                                                      |
+| Repository base                     | Done    | Repository write model e read model con query no-tracking disponibili.                                                   |
+| Identity / Auth cookie / BFF        | Done    | Identity, cookie HttpOnly, antiforgery, BFF same-origin e UI auth implementati.                                          |
+| Authorization policies              | Done    | Policy base per prodotti e gestione utenti definite.                                                                     |
+| Product aggregate                   | Done    | Aggregate, value object, category link, audit fields, repository, command/query e API presenti per lo scope corrente.    |
+| Product API                         | Done    | Endpoint protetti per lista/dettaglio/create/update/delete presenti. Test integration tracciati nell'area `Tests`.       |
+| UI Blazor/MudBlazor                 | Partial | Login/register/logout, navigazione auth, pagine prodotto e pagine categoria presenti. Mancano polish generale e test UI. |
+| Logging / Observability             | Planned | Serilog, health checks, correlation id e audit ancora da implementare.                                                   |
+| Inventory / Movements               | Planned | Non iniziato.                                                                                                            |
+| Customers / Suppliers / Orders      | Planned | Non iniziato.                                                                                                            |
+| Reporting                           | Planned | Non iniziato.                                                                                                            |
+| Tests                               | Planned | Da aggiungere unit, integration e architecture tests.                                                                    |
 
 ## Ledger indicizzato
 
 Usare questi ID quando aggiorniamo il progresso o quando dobbiamo riprendere una feature.
 
-| ID | Area | Stato | Fonte principale |
-|---|---|---|---|
-| `DOCS` | Documentazione progetto | Partial | `Doc/` |
-| `ARCH` | Clean Architecture e convenzioni | Partial | `Doc/01-architettura.md` |
-| `MEDIATR` | MediatR, command/query e behavior | Done | `src/SuperStorage.Application` |
-| `EFCORE` | DbContext, EF Core, Identity schema | Done | `src/SuperStorage.Infrastructure/Persistence` |
-| `REPOSITORY` | Repository base e query no-tracking | Done | `src/SuperStorage.Application/Abstractions/Persistence`, `src/SuperStorage.Infrastructure/Persistence/Repositories` |
-| `AUTH-BFF` | Identity, cookie auth, CSRF, hosted WASM BFF | Done | `Doc/Auth/`, `src/SuperStorage.Api/Endpoints/AuthEndpoints.cs`, `src/SuperStorage.Client/Auth` |
-| `PRODUCTS` | Product aggregate, handlers, repository, API | Partial | `src/SuperStorage.Domain/Products`, `src/SuperStorage.Application/Features/Products`, `src/SuperStorage.Api/Endpoints/ProductEndpoints.cs` |
-| `PRODUCTS-UI` | UI gestione prodotti | Partial | `src/SuperStorage.Client/Pages/Products`, `src/SuperStorage.Client/Services/ApiClients/ProductsApiClient.cs` |
-| `OBSERVABILITY` | Logging, health checks, audit, diagnostics | Planned | `Doc/08-osservabilita-deploy.md` |
-| `INVENTORY` | Giacenze e movimenti | Planned | Da definire |
-| `PARTIES` | Clienti e fornitori | Planned | Da definire |
-| `ORDERS` | Ordini e workflow | Planned | Da definire |
-| `REPORTING` | Reportistica e dashboard | Planned | Da definire |
-| `TESTS` | Unit, integration e architecture tests | Planned | `Doc/07-test-qualita.md` |
+| ID              | Area                                               | Stato   | Fonte principale                                                                                                                                                                                      |
+| --------------- | -------------------------------------------------- | ------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `DOCS`          | Documentazione progetto                            | Partial | `Doc/`                                                                                                                                                                                                |
+| `ARCH`          | Clean Architecture e convenzioni                   | Partial | `Doc/01-architettura.md`                                                                                                                                                                              |
+| `MEDIATR`       | MediatR, command/query e behavior                  | Done    | `src/SuperStorage.Application`                                                                                                                                                                        |
+| `EFCORE`        | DbContext, EF Core, Identity schema                | Done    | `src/SuperStorage.Infrastructure/Persistence`                                                                                                                                                         |
+| `REPOSITORY`    | Repository base e query no-tracking                | Done    | `src/SuperStorage.Application/Abstractions/Persistence`, `src/SuperStorage.Infrastructure/Persistence/Repositories`                                                                                   |
+| `AUTH-BFF`      | Identity, cookie auth, CSRF, hosted WASM BFF       | Done    | `Doc/Auth/`, `src/SuperStorage.Api/Endpoints/AuthEndpoints.cs`, `src/SuperStorage.Client/Auth`                                                                                                        |
+| `PRODUCTS`      | Product aggregate, handlers, repository, API       | Done    | `src/SuperStorage.Domain/Products`, `src/SuperStorage.Application/Features/Products`, `src/SuperStorage.Api/Endpoints/ProductEndpoints.cs`                                                            |
+| `PRODUCTS-UI`   | UI gestione prodotti                               | Done    | `src/SuperStorage.Client/Pages/Products`, `src/SuperStorage.Client/Services/ApiClients/ProductsApiClient.cs`                                                                                          |
+| `CATEGORIES`    | Category aggregate, handlers, repository, API e UI | Done    | `src/SuperStorage.Domain/Products/Category.cs`, `src/SuperStorage.Application/Features/Categories`, `src/SuperStorage.Api/Endpoints/CategoryEndpoints.cs`, `src/SuperStorage.Client/Pages/Categories` |
+| `OBSERVABILITY` | Logging, health checks, audit, diagnostics         | Planned | `Doc/08-osservabilita-deploy.md`                                                                                                                                                                      |
+| `INVENTORY`     | Giacenze e movimenti                               | Planned | Da definire                                                                                                                                                                                           |
+| `PARTIES`       | Clienti e fornitori                                | Planned | Da definire                                                                                                                                                                                           |
+| `ORDERS`        | Ordini e workflow                                  | Planned | Da definire                                                                                                                                                                                           |
+| `REPORTING`     | Reportistica e dashboard                           | Planned | Da definire                                                                                                                                                                                           |
+| `TESTS`         | Unit, integration e architecture tests             | Planned | `Doc/07-test-qualita.md`                                                                                                                                                                              |
 
 ## Decisioni gia' prese
 
@@ -184,19 +185,20 @@ Da verificare periodicamente:
 
 ### Product vertical slice iniziale
 
-Stato: `Partial`
+Stato: `Done`
 
 Completato:
 
 - aggregate root `Product`;
 - value object `Sku`;
 - `Code` come stringa semplice validata dal dominio;
-- entity/aggregate `Category` con relazione opzionale su Product;
+- entity/aggregate `Category` con relazione opzionale su Product, senza navigation inversa verso i prodotti;
 - campi audit `CreatedAtUtc` e `UpdatedAtUtc`;
 - repository prodotto;
 - query/command/handler iniziali;
 - configurazione EF;
 - API products protette;
+- delete prodotto con conferma UI;
 - migration `AddProductCategoriesAndAuditFields`;
 - migration `RemoveProductNameAndUseStringCode`;
 - typed client Blazor per prodotti;
@@ -204,10 +206,31 @@ Completato:
 
 Da fare:
 
-- gestione CRUD categorie;
-- delete/disattivazione dedicata prodotto se serve separarla dall'edit;
-- migliorare paginazione/filtri;
-- test unit e integration.
+- valutare soft delete/disattivazione dedicata se vorremo preservare storico operativo;
+- migliorare paginazione/filtri se emergeranno esigenze operative;
+- test unit e integration tracciati nell'area `Tests`.
+
+### Category vertical slice iniziale
+
+Stato: `Done`
+
+Completato:
+
+- repository categoria;
+- command/query/handler per create/update/list/detail;
+- endpoint protetti `/api/categories`;
+- delete categoria con preview dei primi 5 prodotti collegati;
+- rimozione categoria dai prodotti collegati prima del delete;
+- policy `CategoriesRead` e `CategoriesWrite`;
+- typed client Blazor per categorie;
+- pagine lista, creazione, dettaglio ed edit categoria;
+- nome categoria modificabile.
+
+Da fare:
+
+- valutare soft delete/disattivazione dedicata se vorremo preservare storico operativo;
+- riusare componenti condivisi per form/list quando emergera' duplicazione;
+- test unit e integration tracciati nell'area `Tests`.
 
 ### UI cleanup iniziale
 
@@ -224,15 +247,14 @@ Completato:
 
 ## Prossime feature consigliate
 
-1. Completare Product vertical slice con UI MudBlazor e test.
+1. Aggiungere test unit/integration per Product e Category vertical slice.
 2. Aggiungere logging/observability minima: Serilog, request logging, health checks.
 3. Introdurre `ICurrentUser` e audit base.
-4. Implementare Category/Warehouse/Location.
+4. Implementare Warehouse/Location.
 5. Passare a StockBalance e InventoryMovement.
 
 ## Domande aperte
 
-- Vogliamo considerare Product API iniziale sufficiente per passare alla UI, o preferiamo completare subito update/delete?
 - Vogliamo aggiungere prima test integration per Auth/Product, o andare avanti con UI e poi coprire?
 - Il modello ruoli resta role-based per ora, oppure iniziamo presto con permission claims granulari?
 
@@ -245,4 +267,4 @@ Checkpoint:
 - BFF e autenticazione cookie funzionanti.
 - Logout corretto dopo fix del CSRF token legato all'identita'.
 - Documentazione Auth/BFF aggiornata.
-- Prossimo blocco naturale: decidere se chiudere Product vertical slice oppure introdurre osservabilita' minima.
+- Product e Category hanno create/list/detail/edit/delete a livello API e UI; prossimo blocco naturale: test vertical slice o osservabilita' minima.

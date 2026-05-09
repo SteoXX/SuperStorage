@@ -1,25 +1,24 @@
-@page "/products"
-@attribute [Authorize(Policy = AuthPolicies.ProductsRead)]
-@inject ProductsApiClient ProductsApiClient
-@inject NavigationManager Navigation
+@page "/categories"
+@attribute [Authorize(Policy = AuthPolicies.CategoriesRead)]
+@inject CategoriesApiClient CategoriesApiClient
 @inject ISnackbar Snackbar
 @inject IDialogService DialogService
 
-<PageTitle>Products</PageTitle>
+<PageTitle>Categories</PageTitle>
 
 <MudStack Spacing="3">
     <MudStack Row="true" AlignItems="AlignItems.Center" Justify="Justify.SpaceBetween">
         <MudStack Spacing="1">
-            <MudText Typo="Typo.h4">Products</MudText>
-            <MudText Typo="Typo.body2">Search, inspect and maintain product master data.</MudText>
+            <MudText Typo="Typo.h4">Categories</MudText>
+            <MudText Typo="Typo.body2">Maintain product classification data.</MudText>
         </MudStack>
 
-        <AuthorizeView Policy="@AuthPolicies.ProductsWrite">
+        <AuthorizeView Policy="@AuthPolicies.CategoriesWrite">
             <MudButton Variant="Variant.Filled"
                        Color="Color.Primary"
                        StartIcon="@Icons.Material.Filled.Add"
-                       Href="products/new">
-                New product
+                       Href="categories/new">
+                New category
             </MudButton>
         </AuthorizeView>
     </MudStack>
@@ -28,20 +27,9 @@
         <MudStack Row="true" Spacing="2" AlignItems="AlignItems.End" Class="product-filter-bar">
             <MudTextField @bind-Value="_searchTerm"
                           Label="Search"
-                          Placeholder="Code or SKU"
+                          Placeholder="Name"
                           Immediate="true"
                           Disabled="_isBusy" />
-
-            <MudSelect T="string"
-                       @bind-Value="_selectedCategoryId"
-                       Label="Category"
-                       Disabled="_isBusy">
-                <MudSelectItem T="string" Value="@AllValue">All categories</MudSelectItem>
-                @foreach (var category in _categories)
-                {
-                    <MudSelectItem T="string" Value="@category.Id.ToString()">@category.Name</MudSelectItem>
-                }
-            </MudSelect>
 
             <MudSelect T="string"
                        @bind-Value="_selectedStatus"
@@ -70,53 +58,51 @@
     </MudPaper>
 
     <MudPaper Elevation="1">
-        @if (_isBusy && _products is null)
+        @if (_isBusy && _categories is null)
         {
             <MudStack AlignItems="AlignItems.Center" Class="pa-8">
                 <MudProgressCircular Indeterminate="true" />
             </MudStack>
         }
-        else if (_products is null || _products.TotalCount == 0)
+        else if (_categories is null || _categories.TotalCount == 0)
         {
             <MudStack AlignItems="AlignItems.Center" Class="pa-8" Spacing="2">
-                <MudIcon Icon="@Icons.Material.Filled.Inventory2" Size="Size.Large" />
-                <MudText Typo="Typo.h6">No products found</MudText>
-                <MudText Typo="Typo.body2">Adjust the filters or create the first product.</MudText>
+                <MudIcon Icon="@Icons.Material.Filled.Category" Size="Size.Large" />
+                <MudText Typo="Typo.h6">No categories found</MudText>
+                <MudText Typo="Typo.body2">Adjust the filters or create the first category.</MudText>
             </MudStack>
         }
         else
         {
-            <MudTable Items="Products" Dense="true" Hover="true" Elevation="0">
+            <MudTable Items="Categories" Dense="true" Hover="true" Elevation="0">
                 <HeaderContent>
-                    <MudTh>Code</MudTh>
-                    <MudTh>SKU</MudTh>
-                    <MudTh>Category</MudTh>
+                    <MudTh>Name</MudTh>
+                    <MudTh>Description</MudTh>
                     <MudTh>Status</MudTh>
                     <MudTh>Updated</MudTh>
                     <MudTh></MudTh>
                 </HeaderContent>
-                <RowTemplate Context="product">
-                    <MudTd DataLabel="Code">@product.Code</MudTd>
-                    <MudTd DataLabel="SKU">@product.Sku</MudTd>
-                    <MudTd DataLabel="Category">@DisplayCategory(product)</MudTd>
+                <RowTemplate Context="category">
+                    <MudTd DataLabel="Name">@category.Name</MudTd>
+                    <MudTd DataLabel="Description">@DisplayDescription(category.Description)</MudTd>
                     <MudTd DataLabel="Status">
-                        <MudChip T="string" Size="Size.Small" Color="@(product.IsActive ? Color.Success : Color.Default)">
-                            @(product.IsActive ? "Active" : "Inactive")
+                        <MudChip T="string" Size="Size.Small" Color="@(category.IsActive ? Color.Success : Color.Default)">
+                            @(category.IsActive ? "Active" : "Inactive")
                         </MudChip>
                     </MudTd>
-                    <MudTd DataLabel="Updated">@FormatDate(product.UpdatedAtUtc ?? product.CreatedAtUtc)</MudTd>
+                    <MudTd DataLabel="Updated">@FormatDate(category.UpdatedAtUtc ?? category.CreatedAtUtc)</MudTd>
                     <MudTd DataLabel="Actions" Class="product-actions">
                         <MudButton Variant="Variant.Text"
                                    Size="Size.Small"
                                    StartIcon="@Icons.Material.Filled.Visibility"
-                                   Href="@($"products/{product.Id}")">
+                                   Href="@($"categories/{category.Id}")">
                             View
                         </MudButton>
-                        <AuthorizeView Policy="@AuthPolicies.ProductsWrite" Context="writeAuthState">
+                        <AuthorizeView Policy="@AuthPolicies.CategoriesWrite" Context="writeAuthState">
                             <MudButton Variant="Variant.Text"
                                        Size="Size.Small"
                                        StartIcon="@Icons.Material.Filled.Edit"
-                                       Href="@($"products/{product.Id}/edit")">
+                                       Href="@($"categories/{category.Id}/edit")">
                                 Edit
                             </MudButton>
                             <MudButton Variant="Variant.Text"
@@ -124,7 +110,7 @@
                                        Color="Color.Error"
                                        Disabled="_isBusy"
                                        StartIcon="@Icons.Material.Filled.Delete"
-                                       OnClick="@(() => ConfirmDeleteAsync(product))">
+                                       OnClick="@(() => ConfirmDeleteAsync(category))">
                                 Delete
                             </MudButton>
                         </AuthorizeView>
@@ -134,17 +120,17 @@
 
             <MudStack Row="true" AlignItems="AlignItems.Center" Justify="Justify.SpaceBetween" Class="pa-4">
                 <MudText Typo="Typo.body2">
-                    Page @_pageNumber of @Math.Max(_products.TotalPages, 1) - @_products.TotalCount products
+                    Page @_pageNumber of @Math.Max(_categories.TotalPages, 1) - @_categories.TotalCount categories
                 </MudText>
 
                 <MudStack Row="true" Spacing="1">
                     <MudButton Variant="Variant.Outlined"
-                               Disabled="@(!_products.HasPreviousPage || _isBusy)"
+                               Disabled="@(!_categories.HasPreviousPage || _isBusy)"
                                OnClick="PreviousPageAsync">
                         Previous
                     </MudButton>
                     <MudButton Variant="Variant.Outlined"
-                               Disabled="@(!_products.HasNextPage || _isBusy)"
+                               Disabled="@(!_categories.HasNextPage || _isBusy)"
                                OnClick="NextPageAsync">
                         Next
                     </MudButton>
@@ -160,36 +146,32 @@
     private const string InactiveValue = "inactive";
     private const int PageSize = 20;
 
-    private IReadOnlyCollection<CategoryLookupResponse> _categories = [];
-    private PagedResult<ProductListItemResponse>? _products;
+    private PagedResult<CategoryListItemResponse>? _categories;
     private string? _searchTerm;
-    private string _selectedCategoryId = AllValue;
     private string _selectedStatus = ActiveValue;
     private int _pageNumber = 1;
     private bool _isBusy;
 
-    private IReadOnlyCollection<ProductListItemResponse> Products =>
-        _products?.Items ?? [];
+    private IReadOnlyCollection<CategoryListItemResponse> Categories =>
+        _categories?.Items ?? [];
 
     protected override async Task OnInitializedAsync()
     {
-        await LoadLookupsAsync();
-        await LoadProductsAsync();
+        await LoadCategoriesAsync();
     }
 
     private async Task SearchAsync()
     {
         _pageNumber = 1;
-        await LoadProductsAsync();
+        await LoadCategoriesAsync();
     }
 
     private async Task ResetAsync()
     {
         _searchTerm = null;
-        _selectedCategoryId = AllValue;
         _selectedStatus = ActiveValue;
         _pageNumber = 1;
-        await LoadProductsAsync();
+        await LoadCategoriesAsync();
     }
 
     private async Task PreviousPageAsync()
@@ -200,41 +182,28 @@
         }
 
         _pageNumber--;
-        await LoadProductsAsync();
+        await LoadCategoriesAsync();
     }
 
     private async Task NextPageAsync()
     {
-        if (_products is null || !_products.HasNextPage)
+        if (_categories is null || !_categories.HasNextPage)
         {
             return;
         }
 
         _pageNumber++;
-        await LoadProductsAsync();
+        await LoadCategoriesAsync();
     }
 
-    private async Task LoadLookupsAsync()
-    {
-        try
-        {
-            _categories = await ProductsApiClient.GetCategoryLookupsAsync();
-        }
-        catch (ApiException exception)
-        {
-            Snackbar.Add(exception.Message, Severity.Error);
-        }
-    }
-
-    private async Task LoadProductsAsync()
+    private async Task LoadCategoriesAsync()
     {
         _isBusy = true;
 
         try
         {
-            _products = await ProductsApiClient.SearchAsync(
+            _categories = await CategoriesApiClient.SearchAsync(
                 _searchTerm,
-                ParseCategoryId(),
                 ParseStatus(),
                 _pageNumber,
                 PageSize);
@@ -249,32 +218,46 @@
         }
     }
 
-    private async Task ConfirmDeleteAsync(ProductListItemResponse product)
+    private async Task ConfirmDeleteAsync(CategoryListItemResponse category)
     {
-        var confirmed = await ShowDeleteDialogAsync(
-            "Delete product",
-            $"Are you sure you want to delete the product {product.Code}?");
-
-        if (!confirmed)
-        {
-            return;
-        }
-
         _isBusy = true;
 
         try
         {
-            var deleted = await ProductsApiClient.DeleteAsync(product.Id);
+            var impact = await CategoriesApiClient.GetDeleteImpactAsync(category.Id);
 
-            if (!deleted)
+            if (impact is null)
             {
-                Snackbar.Add("Product not found.", Severity.Warning);
-                await LoadProductsAsync();
+                Snackbar.Add("Category not found.", Severity.Warning);
+                await LoadCategoriesAsync();
                 return;
             }
 
-            Snackbar.Add("Product deleted.", Severity.Success);
-            await LoadProductsAsync();
+            _isBusy = false;
+
+            var confirmed = await ShowDeleteDialogAsync(
+                "Delete category",
+                BuildDeleteMessage(impact),
+                BuildLinkedProductPreview(impact));
+
+            if (!confirmed)
+            {
+                return;
+            }
+
+            _isBusy = true;
+
+            var deleted = await CategoriesApiClient.DeleteAsync(category.Id);
+
+            if (!deleted)
+            {
+                Snackbar.Add("Category not found.", Severity.Warning);
+                await LoadCategoriesAsync();
+                return;
+            }
+
+            Snackbar.Add("Category deleted.", Severity.Success);
+            await LoadCategoriesAsync();
         }
         catch (ApiException exception)
         {
@@ -310,11 +293,33 @@
         return result is { Canceled: false, Data: bool confirmed } && confirmed;
     }
 
-    private Guid? ParseCategoryId()
+    private static string BuildDeleteMessage(CategoryDeleteImpactResponse impact)
     {
-        return Guid.TryParse(_selectedCategoryId, out var categoryId)
-            ? categoryId
-            : null;
+        if (impact.LinkedProductsCount == 0)
+        {
+            return $"Are you sure you want to delete the category {impact.CategoryName}?";
+        }
+
+        return $"Are you sure you want to delete the category {impact.CategoryName}? It will be removed from the linked products below.";
+    }
+
+    private static IReadOnlyCollection<string> BuildLinkedProductPreview(CategoryDeleteImpactResponse impact)
+    {
+        if (impact.LinkedProductsCount == 0)
+        {
+            return [];
+        }
+
+        var products = impact.LinkedProducts
+            .Select(product => $"{product.Code} ({product.Sku})")
+            .ToList();
+
+        if (impact.LinkedProductsCount > impact.LinkedProducts.Count)
+        {
+            products.Add("...");
+        }
+
+        return products;
     }
 
     private bool? ParseStatus()
@@ -327,11 +332,11 @@
         };
     }
 
-    private static string DisplayCategory(ProductListItemResponse product)
+    private static string DisplayDescription(string? description)
     {
-        return string.IsNullOrWhiteSpace(product.CategoryName)
+        return string.IsNullOrWhiteSpace(description)
             ? "-"
-            : product.CategoryName;
+            : description;
     }
 
     private static string FormatDate(DateTimeOffset value)

@@ -1,0 +1,102 @@
+@page "/categories/new"
+@attribute [Authorize(Policy = AuthPolicies.CategoriesWrite)]
+@inject CategoriesApiClient CategoriesApiClient
+@inject NavigationManager Navigation
+@inject ISnackbar Snackbar
+
+<PageTitle>New Category</PageTitle>
+
+<MudStack Spacing="3">
+    <MudStack Row="true" AlignItems="AlignItems.Center" Justify="Justify.SpaceBetween">
+        <MudStack Spacing="1">
+            <MudText Typo="Typo.h4">New category</MudText>
+            <MudText Typo="Typo.body2">Create a product classification category.</MudText>
+        </MudStack>
+
+        <MudButton Variant="Variant.Text"
+                   StartIcon="@Icons.Material.Filled.ArrowBack"
+                   Href="categories">
+            Back
+        </MudButton>
+    </MudStack>
+
+    <MudPaper Class="pa-4" Elevation="1">
+        <MudForm @ref="_form">
+            <MudStack Spacing="3">
+                <MudTextField @bind-Value="_model.Name"
+                              Label="Name"
+                              Required="true"
+                              Disabled="_isBusy" />
+
+                <MudTextField @bind-Value="_model.Description"
+                              Label="Description"
+                              Lines="4"
+                              Disabled="_isBusy" />
+
+                <MudStack Row="true" Justify="Justify.FlexEnd" Spacing="2">
+                    <MudButton Variant="Variant.Text"
+                               Disabled="_isBusy"
+                               Href="categories">
+                        Cancel
+                    </MudButton>
+
+                    <MudButton Variant="Variant.Filled"
+                               Color="Color.Primary"
+                               Disabled="_isBusy"
+                               StartIcon="@Icons.Material.Filled.Save"
+                               OnClick="SubmitAsync">
+                        Create
+                    </MudButton>
+                </MudStack>
+            </MudStack>
+        </MudForm>
+    </MudPaper>
+</MudStack>
+
+@code {
+    private readonly CategoryFormModel _model = new();
+    private MudForm? _form;
+    private bool _isBusy;
+
+    private async Task SubmitAsync()
+    {
+        if (_form is null)
+        {
+            return;
+        }
+
+        await _form.ValidateAsync();
+
+        if (!_form.IsValid)
+        {
+            return;
+        }
+
+        _isBusy = true;
+
+        try
+        {
+            var category = await CategoriesApiClient.CreateAsync(new CreateCategoryRequest(
+                _model.Name,
+                _model.Description));
+
+            Snackbar.Add("Category created.", Severity.Success);
+            Navigation.NavigateTo($"/categories/{category.Id}");
+        }
+        catch (ApiException exception)
+        {
+            Snackbar.Add(exception.Message, Severity.Error);
+        }
+        finally
+        {
+            _isBusy = false;
+        }
+    }
+
+    private sealed class CategoryFormModel
+    {
+        public string Name { get; set; } = string.Empty;
+
+        public string? Description { get; set; }
+    }
+}

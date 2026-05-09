@@ -42,4 +42,14 @@ internal sealed class ProductRepository(WmsDbContext dbContext)
             .Set<Product>()
             .AnyAsync(product => product.Sku == sku, cancellationToken);
     }
+
+    public async Task<IReadOnlyCollection<Product>> GetByCategoryIdAsync(
+        Guid categoryId,
+        CancellationToken cancellationToken = default)
+    {
+        return await DbContext
+            .Set<Product>()
+            .Where(product => product.CategoryId == categoryId)
+            .ToListAsync(cancellationToken);
+    }
 }

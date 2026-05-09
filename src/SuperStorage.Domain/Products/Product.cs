@@ -68,6 +68,12 @@ public sealed partial class Product : AggregateRoot<Guid>
         UpdatedAtUtc = updatedAtUtc;
     }
 
+    public void ClearCategory(DateTimeOffset updatedAtUtc)
+    {
+        CategoryId = null;
+        UpdatedAtUtc = updatedAtUtc;
+    }
+
     public void Activate()
     {
         IsActive = true;

@@ -12,4 +12,8 @@ public interface IProductRepository : IRepository<Product, Guid>
     Task<Product?> GetBySkuAsync(Sku sku, CancellationToken cancellationToken = default);
 
     Task<bool> ExistsBySkuAsync(Sku sku, CancellationToken cancellationToken = default);
+
+    Task<IReadOnlyCollection<Product>> GetByCategoryIdAsync(
+        Guid categoryId,
+        CancellationToken cancellationToken = default);
 }

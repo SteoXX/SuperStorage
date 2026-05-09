@@ -16,6 +16,8 @@ builder.Services.AddMudServices(options =>
 {
     options.SnackbarConfiguration.PositionClass = Defaults.Classes.Position.BottomCenter;
 });
+
+// TODO: Move auth policies and roles to a DependencyInjection/extensions class file
 builder.Services.AddAuthorizationCore(options =>
 {
     options.AddPolicy(AuthPolicies.ProductsRead, policy =>
@@ -30,9 +32,22 @@ builder.Services.AddAuthorizationCore(options =>
             AuthRoles.Administrator,
             AuthRoles.WarehouseManager));
 
+    options.AddPolicy(AuthPolicies.CategoriesRead, policy =>
+        policy.RequireRole(
+            AuthRoles.Administrator,
+            AuthRoles.WarehouseManager,
+            AuthRoles.Operator,
+            AuthRoles.Viewer));
+
+    options.AddPolicy(AuthPolicies.CategoriesWrite, policy =>
+        policy.RequireRole(
+            AuthRoles.Administrator,
+            AuthRoles.WarehouseManager));
+
     options.AddPolicy(AuthPolicies.UsersManage, policy =>
         policy.RequireRole(AuthRoles.Administrator));
 });
+
 builder.Services.AddScoped<ApiHttpMessageHandler>();
 builder.Services.AddScoped(sp =>
 {
@@ -44,7 +59,9 @@ builder.Services.AddScoped(sp =>
         BaseAddress = new Uri(builder.HostEnvironment.BaseAddress)
     };
 });
+
 builder.Services.AddScoped<AuthApiClient>();
+builder.Services.AddScoped<CategoriesApiClient>();
 builder.Services.AddScoped<ProductsApiClient>();
 builder.Services.AddScoped<CookieAuthenticationStateProvider>();
 builder.Services.AddScoped<AuthenticationStateProvider>(provider =>

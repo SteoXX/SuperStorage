@@ -10,6 +10,7 @@
         <File Path="Doc/07-test-qualita.md" />
         <File Path="Doc/08-osservabilita-deploy.md" />
         <File Path="Doc/09-piano-sviluppo.md" />
+        <File Path="Doc/10-progress-tracker.md" />
     </Folder>
     <Folder Name="/Solution Items/">
         <File Path="Directory.Packages.props" />

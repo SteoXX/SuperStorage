@@ -4,5 +4,7 @@ public static class AuthPolicies
 {
     public const string ProductsRead = nameof(ProductsRead);
     public const string ProductsWrite = nameof(ProductsWrite);
+    public const string CategoriesRead = nameof(CategoriesRead);
+    public const string CategoriesWrite = nameof(CategoriesWrite);
     public const string UsersManage = nameof(UsersManage);
 }

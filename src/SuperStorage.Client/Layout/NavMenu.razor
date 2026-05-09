@@ -5,6 +5,9 @@
             <AuthorizeView Policy="@AuthPolicies.ProductsRead" Context="productsAuthState">
                 <MudNavLink Href="products" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.Inventory2">Products</MudNavLink>
             </AuthorizeView>
+            <AuthorizeView Policy="@AuthPolicies.CategoriesRead" Context="categoriesAuthState">
+                <MudNavLink Href="categories" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.Category">Categories</MudNavLink>
+            </AuthorizeView>
             <MudNavLink Href="logout" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.Logout">Logout</MudNavLink>
         </Authorized>
         <NotAuthorized>

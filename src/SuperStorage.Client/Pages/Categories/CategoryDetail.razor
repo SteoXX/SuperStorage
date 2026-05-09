@@ -1,11 +1,11 @@
-@page "/products/{Id:guid}"
-@attribute [Authorize(Policy = AuthPolicies.ProductsRead)]
-@inject ProductsApiClient ProductsApiClient
+@page "/categories/{Id:guid}"
+@attribute [Authorize(Policy = AuthPolicies.CategoriesRead)]
+@inject CategoriesApiClient CategoriesApiClient
 @inject NavigationManager Navigation
 @inject ISnackbar Snackbar
 @inject IDialogService DialogService
 
-<PageTitle>Product Detail</PageTitle>
+<PageTitle>Category Detail</PageTitle>
 
 @if (_isLoading)
 {
@@ -13,31 +13,31 @@
         <MudProgressCircular Indeterminate="true" />
     </MudStack>
 }
-else if (_product is null)
+else if (_category is null)
 {
-    <MudAlert Severity="Severity.Warning">Product not found.</MudAlert>
+    <MudAlert Severity="Severity.Warning">Category not found.</MudAlert>
 }
 else
 {
     <MudStack Spacing="3">
         <MudStack Row="true" AlignItems="AlignItems.Center" Justify="Justify.SpaceBetween">
             <MudStack Spacing="1">
-                <MudText Typo="Typo.h4">@_product.Code</MudText>
-                <MudText Typo="Typo.body2">@_product.Sku</MudText>
+                <MudText Typo="Typo.h4">@_category.Name</MudText>
+                <MudText Typo="Typo.body2">Product classification category</MudText>
             </MudStack>
 
             <MudStack Row="true" Spacing="2">
                 <MudButton Variant="Variant.Text"
                            StartIcon="@Icons.Material.Filled.ArrowBack"
-                           Href="products">
+                           Href="categories">
                     Back
                 </MudButton>
 
-                <AuthorizeView Policy="@AuthPolicies.ProductsWrite">
+                <AuthorizeView Policy="@AuthPolicies.CategoriesWrite">
                     <MudButton Variant="Variant.Filled"
                                Color="Color.Primary"
                                StartIcon="@Icons.Material.Filled.Edit"
-                               Href="@($"/products/{Id}/edit")">
+                               Href="@($"/categories/{Id}/edit")">
                         Edit
                     </MudButton>
                     <MudButton Variant="Variant.Filled"
@@ -54,16 +54,16 @@ else
         <MudPaper Class="pa-4" Elevation="1">
             <MudStack Spacing="3">
                 <MudStack Row="true" Spacing="2" AlignItems="AlignItems.Center">
-                    <MudChip T="string" Color="@(_product.IsActive ? Color.Success : Color.Default)">
-                        @(_product.IsActive ? "Active" : "Inactive")
+                    <MudChip T="string" Color="@(_category.IsActive ? Color.Success : Color.Default)">
+                        @(_category.IsActive ? "Active" : "Inactive")
                     </MudChip>
                     <MudText Typo="Typo.body2">
-                        Created @FormatDate(_product.CreatedAtUtc)
+                        Created @FormatDate(_category.CreatedAtUtc)
                     </MudText>
-                    @if (_product.UpdatedAtUtc is not null)
+                    @if (_category.UpdatedAtUtc is not null)
                     {
                         <MudText Typo="Typo.body2">
-                            Updated @FormatDate(_product.UpdatedAtUtc.Value)
+                            Updated @FormatDate(_category.UpdatedAtUtc.Value)
                         </MudText>
                     }
                 </MudStack>
@@ -71,20 +71,12 @@ else
                 <MudSimpleTable Dense="true" Hover="true">
                     <tbody>
                         <tr>
-                            <td>Code</td>
-                            <td>@_product.Code</td>
-                        </tr>
-                        <tr>
-                            <td>SKU</td>
-                            <td>@_product.Sku</td>
-                        </tr>
-                        <tr>
-                            <td>Category</td>
-                            <td>@DisplayCategory(_product)</td>
+                            <td>Name</td>
+                            <td>@_category.Name</td>
                         </tr>
                         <tr>
                             <td>Description</td>
-                            <td>@DisplayDescription(_product)</td>
+                            <td>@DisplayDescription(_category)</td>
                         </tr>
                     </tbody>
                 </MudSimpleTable>
@@ -94,7 +86,7 @@ else
 }
 
 @code {
-    private ProductResponse? _product;
+    private CategoryResponse? _category;
     private bool _isLoading = true;
     private bool _isDeleting;
 
@@ -105,7 +97,7 @@ else
     {
         try
         {
-            _product = await ProductsApiClient.GetByIdAsync(Id);
+            _category = await CategoriesApiClient.GetByIdAsync(Id);
         }
         catch (ApiException exception)
         {
@@ -119,16 +111,7 @@ else
 
     private async Task ConfirmDeleteAsync()
     {
-        if (_product is null)
-        {
-            return;
-        }
-
-        var confirmed = await ShowDeleteDialogAsync(
-            "Delete product",
-            $"Are you sure you want to delete the product {_product.Code}?");
-
-        if (!confirmed)
+        if (_category is null)
         {
             return;
         }
@@ -137,17 +120,40 @@ else
 
         try
         {
-            var deleted = await ProductsApiClient.DeleteAsync(_product.Id);
+            var impact = await CategoriesApiClient.GetDeleteImpactAsync(_category.Id);
 
-            if (!deleted)
+            if (impact is null)
             {
-                Snackbar.Add("Product not found.", Severity.Warning);
-                Navigation.NavigateTo("/products");
+                Snackbar.Add("Category not found.", Severity.Warning);
+                Navigation.NavigateTo("/categories");
                 return;
             }
 
-            Snackbar.Add("Product deleted.", Severity.Success);
-            Navigation.NavigateTo("/products");
+            _isDeleting = false;
+
+            var confirmed = await ShowDeleteDialogAsync(
+                "Delete category",
+                BuildDeleteMessage(impact),
+                BuildLinkedProductPreview(impact));
+
+            if (!confirmed)
+            {
+                return;
+            }
+
+            _isDeleting = true;
+
+            var deleted = await CategoriesApiClient.DeleteAsync(_category.Id);
+
+            if (!deleted)
+            {
+                Snackbar.Add("Category not found.", Severity.Warning);
+                Navigation.NavigateTo("/categories");
+                return;
+            }
+
+            Snackbar.Add("Category deleted.", Severity.Success);
+            Navigation.NavigateTo("/categories");
         }
         catch (ApiException exception)
         {
@@ -183,18 +189,40 @@ else
         return result is { Canceled: false, Data: bool confirmed } && confirmed;
     }
 
-    private static string DisplayCategory(ProductResponse product)
+    private static string BuildDeleteMessage(CategoryDeleteImpactResponse impact)
     {
-        return string.IsNullOrWhiteSpace(product.CategoryName)
-            ? "-"
-            : product.CategoryName;
+        if (impact.LinkedProductsCount == 0)
+        {
+            return $"Are you sure you want to delete the category {impact.CategoryName}?";
+        }
+
+        return $"Are you sure you want to delete the category {impact.CategoryName}? It will be removed from the linked products below.";
     }
 
-    private static string DisplayDescription(ProductResponse product)
+    private static IReadOnlyCollection<string> BuildLinkedProductPreview(CategoryDeleteImpactResponse impact)
     {
-        return string.IsNullOrWhiteSpace(product.Description)
+        if (impact.LinkedProductsCount == 0)
+        {
+            return [];
+        }
+
+        var products = impact.LinkedProducts
+            .Select(product => $"{product.Code} ({product.Sku})")
+            .ToList();
+
+        if (impact.LinkedProductsCount > impact.LinkedProducts.Count)
+        {
+            products.Add("...");
+        }
+
+        return products;
+    }
+
+    private static string DisplayDescription(CategoryResponse category)
+    {
+        return string.IsNullOrWhiteSpace(category.Description)
             ? "-"
-            : product.Description;
+            : category.Description;
     }
 
     private static string FormatDate(DateTimeOffset value)

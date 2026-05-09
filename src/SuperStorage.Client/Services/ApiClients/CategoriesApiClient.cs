@@ -1,15 +1,14 @@
 using System.Net.Http.Json;
 using System.Text.Json;
+using SuperStorage.Contracts.Categories;
 using SuperStorage.Contracts.Common;
-using SuperStorage.Contracts.Products;
 
 namespace SuperStorage.Client.Services.ApiClients;
 
-public sealed class ProductsApiClient(HttpClient httpClient)
+public sealed class CategoriesApiClient(HttpClient httpClient)
 {
-    public async Task<PagedResult<ProductListItemResponse>> SearchAsync(
+    public async Task<PagedResult<CategoryListItemResponse>> SearchAsync(
         string? searchTerm,
-        Guid? categoryId,
         bool? isActive,
         int pageNumber,
         int pageSize,
@@ -26,28 +25,23 @@ public sealed class ProductsApiClient(HttpClient httpClient)
             query.Add($"searchTerm={Uri.EscapeDataString(searchTerm.Trim())}");
         }
 
-        if (categoryId is not null)
-        {
-            query.Add($"categoryId={categoryId.Value}");
-        }
-
         if (isActive is not null)
         {
             query.Add($"isActive={isActive.Value}");
         }
 
-        var response = await httpClient.GetFromJsonAsync<PagedResult<ProductListItemResponse>>(
-            $"api/products?{string.Join("&", query)}",
+        var response = await httpClient.GetFromJsonAsync<PagedResult<CategoryListItemResponse>>(
+            $"api/categories?{string.Join("&", query)}",
             cancellationToken);
 
-        return response ?? new PagedResult<ProductListItemResponse>([], pageNumber, pageSize, 0);
+        return response ?? new PagedResult<CategoryListItemResponse>([], pageNumber, pageSize, 0);
     }
 
-    public async Task<ProductResponse?> GetByIdAsync(
+    public async Task<CategoryResponse?> GetByIdAsync(
         Guid id,
         CancellationToken cancellationToken = default)
     {
-        using var response = await httpClient.GetAsync($"api/products/{id}", cancellationToken);
+        using var response = await httpClient.GetAsync($"api/categories/{id}", cancellationToken);
 
         if (response.StatusCode is System.Net.HttpStatusCode.NotFound)
         {
@@ -59,40 +53,60 @@ public sealed class ProductsApiClient(HttpClient httpClient)
             throw await CreateExceptionAsync(response, cancellationToken);
         }
 
-        return await response.Content.ReadFromJsonAsync<ProductResponse>(
+        return await response.Content.ReadFromJsonAsync<CategoryResponse>(
             cancellationToken: cancellationToken);
     }
 
-    public async Task<ProductResponse> CreateAsync(
-        CreateProductRequest request,
+    public async Task<CategoryResponse> CreateAsync(
+        CreateCategoryRequest request,
         CancellationToken cancellationToken = default)
     {
         using var response = await httpClient.PostAsJsonAsync(
-            "api/products",
+            "api/categories",
             request,
             cancellationToken);
 
-        return await ReadProductResponseAsync(response, cancellationToken);
+        return await ReadCategoryResponseAsync(response, cancellationToken);
     }
 
-    public async Task<ProductResponse> UpdateAsync(
+    public async Task<CategoryResponse> UpdateAsync(
         Guid id,
-        UpdateProductRequest request,
+        UpdateCategoryRequest request,
         CancellationToken cancellationToken = default)
     {
         using var response = await httpClient.PutAsJsonAsync(
-            $"api/products/{id}",
+            $"api/categories/{id}",
             request,
             cancellationToken);
 
-        return await ReadProductResponseAsync(response, cancellationToken);
+        return await ReadCategoryResponseAsync(response, cancellationToken);
+    }
+
+    public async Task<CategoryDeleteImpactResponse?> GetDeleteImpactAsync(
+        Guid id,
+        CancellationToken cancellationToken = default)
+    {
+        using var response = await httpClient.GetAsync($"api/categories/{id}/delete-impact", cancellationToken);
+
+        if (response.StatusCode is System.Net.HttpStatusCode.NotFound)
+        {
+            return null;
+        }
+
+        if (!response.IsSuccessStatusCode)
+        {
+            throw await CreateExceptionAsync(response, cancellationToken);
+        }
+
+        return await response.Content.ReadFromJsonAsync<CategoryDeleteImpactResponse>(
+            cancellationToken: cancellationToken);
     }
 
     public async Task<bool> DeleteAsync(
         Guid id,
         CancellationToken cancellationToken = default)
     {
-        using var response = await httpClient.DeleteAsync($"api/products/{id}", cancellationToken);
+        using var response = await httpClient.DeleteAsync($"api/categories/{id}", cancellationToken);
 
         if (response.StatusCode is System.Net.HttpStatusCode.NotFound)
         {
@@ -107,17 +121,7 @@ public sealed class ProductsApiClient(HttpClient httpClient)
         return true;
     }
 
-    public async Task<IReadOnlyCollection<CategoryLookupResponse>> GetCategoryLookupsAsync(
-        CancellationToken cancellationToken = default)
-    {
-        var response = await httpClient.GetFromJsonAsync<IReadOnlyCollection<CategoryLookupResponse>>(
-            "api/products/categories/lookup",
-            cancellationToken);
-
-        return response ?? [];
-    }
-
-    private static async Task<ProductResponse> ReadProductResponseAsync(
+    private static async Task<CategoryResponse> ReadCategoryResponseAsync(
         HttpResponseMessage response,
         CancellationToken cancellationToken)
     {
@@ -126,10 +130,10 @@ public sealed class ProductsApiClient(HttpClient httpClient)
             throw await CreateExceptionAsync(response, cancellationToken);
         }
 
-        var product = await response.Content.ReadFromJsonAsync<ProductResponse>(
+        var category = await response.Content.ReadFromJsonAsync<CategoryResponse>(
             cancellationToken: cancellationToken);
 
-        return product ?? throw new ApiException("The server returned an empty product response.", (int)response.StatusCode);
+        return category ?? throw new ApiException("The server returned an empty category response.", (int)response.StatusCode);
     }
 
     private static async Task<ApiException> CreateExceptionAsync(

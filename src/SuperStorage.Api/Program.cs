@@ -38,6 +38,7 @@ app.UseAntiforgery();
 
 // Map endpoints
 app.MapAuthEndpoints();
+app.MapCategoryEndpoints();
 app.MapProductEndpoints();
 app.MapFallbackToFile("index.html");
 

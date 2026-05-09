@@ -37,7 +37,7 @@ internal sealed class ProductConfiguration : IEntityTypeConfiguration<Product>
         builder.Property(product => product.UpdatedAtUtc);
 
         builder.HasOne(product => product.Category)
-            .WithMany(category => category.Products)
+            .WithMany()
             .HasForeignKey(product => product.CategoryId)
             .OnDelete(DeleteBehavior.Restrict);
 

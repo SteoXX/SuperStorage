@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Antiforgery;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 using SuperStorage.Application.Features.Products.Commands.CreateProduct;
+using SuperStorage.Application.Features.Products.Commands.DeleteProduct;
 using SuperStorage.Application.Features.Products.Commands.UpdateProduct;
 using SuperStorage.Application.Features.Products.Queries.GetCategoryLookups;
 using SuperStorage.Application.Features.Products.Queries.GetProductById;
@@ -45,6 +46,12 @@ internal static class ProductEndpoints
             .Produces(StatusCodes.Status404NotFound)
             .ProducesValidationProblem()
             .ProducesProblem(StatusCodes.Status409Conflict)
+            .RequireAuthorization(AuthPolicies.ProductsWrite);
+
+        group.MapDelete("/{id:guid}", DeleteProductAsync)
+            .WithName("DeleteProduct")
+            .Produces(StatusCodes.Status204NoContent)
+            .Produces(StatusCodes.Status404NotFound)
             .RequireAuthorization(AuthPolicies.ProductsWrite);
 
         group.MapGet("/categories/lookup", GetCategoryLookupsAsync)
@@ -125,6 +132,22 @@ internal static class ProductEndpoints
         return result is null
             ? TypedResults.NotFound()
             : TypedResults.Ok(result);
+    }
+
+    private static async Task<Results<NoContent, NotFound>> DeleteProductAsync(
+        Guid id,
+        HttpContext httpContext,
+        IAntiforgery antiforgery,
+        ISender sender,
+        CancellationToken cancellationToken)
+    {
+        await antiforgery.ValidateRequestAsync(httpContext);
+
+        var deleted = await sender.Send(new DeleteProductCommand(id), cancellationToken);
+
+        return deleted
+            ? TypedResults.NoContent()
+            : TypedResults.NotFound();
     }
 
     private static async Task<Ok<IReadOnlyCollection<CategoryLookupResponse>>> GetCategoryLookupsAsync(

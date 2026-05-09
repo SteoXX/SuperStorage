@@ -63,6 +63,18 @@ public static class ServiceCollectionExtensions
                         AuthRoles.Administrator,
                         AuthRoles.WarehouseManager));
 
+                options.AddPolicy(AuthPolicies.CategoriesRead, policy =>
+                    policy.RequireRole(
+                        AuthRoles.Administrator,
+                        AuthRoles.WarehouseManager,
+                        AuthRoles.Operator,
+                        AuthRoles.Viewer));
+
+                options.AddPolicy(AuthPolicies.CategoriesWrite, policy =>
+                    policy.RequireRole(
+                        AuthRoles.Administrator,
+                        AuthRoles.WarehouseManager));
+
                 options.AddPolicy(AuthPolicies.UsersManage, policy =>
                     policy.RequireRole(AuthRoles.Administrator));
             });

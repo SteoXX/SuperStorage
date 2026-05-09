@@ -1,0 +1,152 @@
+@page "/categories/{Id:guid}/edit"
+@attribute [Authorize(Policy = AuthPolicies.CategoriesWrite)]
+@inject CategoriesApiClient CategoriesApiClient
+@inject NavigationManager Navigation
+@inject ISnackbar Snackbar
+
+<PageTitle>Edit Category</PageTitle>
+
+@if (_isLoading)
+{
+    <MudStack AlignItems="AlignItems.Center" Class="pa-8">
+        <MudProgressCircular Indeterminate="true" />
+    </MudStack>
+}
+else if (_category is null)
+{
+    <MudAlert Severity="Severity.Warning">Category not found.</MudAlert>
+}
+else
+{
+    <MudStack Spacing="3">
+        <MudStack Row="true" AlignItems="AlignItems.Center" Justify="Justify.SpaceBetween">
+            <MudStack Spacing="1">
+                <MudText Typo="Typo.h4">Edit category</MudText>
+                <MudText Typo="Typo.body2">@_category.Name</MudText>
+            </MudStack>
+
+            <MudButton Variant="Variant.Text"
+                       StartIcon="@Icons.Material.Filled.ArrowBack"
+                       Href="@($"/categories/{Id}")">
+                Back
+            </MudButton>
+        </MudStack>
+
+        <MudPaper Class="pa-4" Elevation="1">
+            <MudForm @ref="_form">
+                <MudStack Spacing="3">
+                    <MudTextField @bind-Value="_model.Name"
+                                  Label="Name"
+                                  Required="true"
+                                  Disabled="_isBusy" />
+
+                    <MudTextField @bind-Value="_model.Description"
+                                  Label="Description"
+                                  Lines="4"
+                                  Disabled="_isBusy" />
+
+                    <MudCheckBox @bind-Value="_model.IsActive"
+                                 Label="Active"
+                                 Disabled="_isBusy" />
+
+                    <MudStack Row="true" Justify="Justify.FlexEnd" Spacing="2">
+                        <MudButton Variant="Variant.Text"
+                                   Disabled="_isBusy"
+                                   Href="@($"/categories/{Id}")">
+                            Cancel
+                        </MudButton>
+
+                        <MudButton Variant="Variant.Filled"
+                                   Color="Color.Primary"
+                                   Disabled="_isBusy"
+                                   StartIcon="@Icons.Material.Filled.Save"
+                                   OnClick="SubmitAsync">
+                            Save
+                        </MudButton>
+                    </MudStack>
+                </MudStack>
+            </MudForm>
+        </MudPaper>
+    </MudStack>
+}
+
+@code {
+    private readonly CategoryEditModel _model = new();
+    private CategoryResponse? _category;
+    private MudForm? _form;
+    private bool _isLoading = true;
+    private bool _isBusy;
+
+    [Parameter]
+    public Guid Id { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            _category = await CategoriesApiClient.GetByIdAsync(Id);
+
+            if (_category is not null)
+            {
+                _model.Name = _category.Name;
+                _model.Description = _category.Description;
+                _model.IsActive = _category.IsActive;
+            }
+        }
+        catch (ApiException exception)
+        {
+            Snackbar.Add(exception.Message, Severity.Error);
+        }
+        finally
+        {
+            _isLoading = false;
+        }
+    }
+
+    private async Task SubmitAsync()
+    {
+        if (_form is null)
+        {
+            return;
+        }
+
+        await _form.ValidateAsync();
+
+        if (!_form.IsValid)
+        {
+            return;
+        }
+
+        _isBusy = true;
+
+        try
+        {
+            var category = await CategoriesApiClient.UpdateAsync(
+                Id,
+                new UpdateCategoryRequest(
+                    _model.Name,
+                    _model.Description,
+                    _model.IsActive));
+
+            Snackbar.Add("Category updated.", Severity.Success);
+            Navigation.NavigateTo($"/categories/{category.Id}");
+        }
+        catch (ApiException exception)
+        {
+            Snackbar.Add(exception.Message, Severity.Error);
+        }
+        finally
+        {
+            _isBusy = false;
+        }
+    }
+
+    private sealed class CategoryEditModel
+    {
+        public string Name { get; set; } = string.Empty;
+
+        public string? Description { get; set; }
+
+        public bool IsActive { get; set; }
+    }
+}

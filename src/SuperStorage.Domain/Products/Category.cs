@@ -7,8 +7,6 @@ public sealed class Category : AggregateRoot<Guid>
     public const int NameMaxLength = 120;
     public const int DescriptionMaxLength = 500;
 
-    private readonly List<Product> _products = [];
-
     private Category(
         Guid id,
         string name,
@@ -35,8 +33,6 @@ public sealed class Category : AggregateRoot<Guid>
     public DateTimeOffset CreatedAtUtc { get; private set; }
 
     public DateTimeOffset? UpdatedAtUtc { get; private set; }
-
-    public IReadOnlyCollection<Product> Products => _products.AsReadOnly();
 
     public static Category Create(
         Guid id,
