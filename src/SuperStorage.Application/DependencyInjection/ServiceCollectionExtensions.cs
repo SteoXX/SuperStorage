@@ -1,5 +1,6 @@
 using FluentValidation;
 using Microsoft.Extensions.DependencyInjection;
+using SuperStorage.Application.Common.Behaviors;
 
 namespace SuperStorage.Application;
 
@@ -15,16 +16,11 @@ public static class ServiceCollectionExtensions
             {
                 cfg.RegisterServicesFromAssembly(assembly);
 
-                // Behavior pipeline
-                // cfg.AddOpenBehavior(typeof(ValidationBehavior<,>));
-                // cfg.AddOpenBehavior(typeof(UnitOfWorkBehavior<,>));
-                // cfg.AddOpenBehavior(typeof(LoggingBehavior<,>));
+                cfg.AddOpenBehavior(typeof(ValidationBehavior<,>));
+                cfg.AddOpenBehavior(typeof(UnitOfWorkBehavior<,>));
             });
 
             services.AddValidatorsFromAssembly(assembly, includeInternalTypes: true);
-
-            // services.AddScoped<ICommandDispatcher, CommandDispatcher>();
-            // services.AddScoped<IQueryDispatcher, QueryDispatcher>();
 
             return services;
         }
