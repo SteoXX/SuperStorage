@@ -98,6 +98,8 @@ Regole performance:
 - `AsSplitQuery` per grafi grandi;
 - indici creati quando una query entra nel prodotto;
 - review del SQL generato per report importanti.
+- usare sempre metodi EF Core async quando disponibili: `ToListAsync`, `SingleOrDefaultAsync`, `AnyAsync`, `CountAsync`, `SaveChangesAsync`;
+- forwardare sempre il `CancellationToken` ricevuto dal chiamante.
 
 ## Repository e DbContext
 
@@ -110,9 +112,8 @@ Per comandi:
 
 Per query:
 
-- query handler read-only con `IApplicationDbContext` o query service dedicati;
+- query handler read-only con `IQueryDbContext.Query<TEntity>()`, che applica `AsNoTracking` centralmente;
 - proiezioni dirette;
-- `AsNoTracking`;
 - paginazione obbligatoria;
 - eventuali query service se i report diventano complessi.
 

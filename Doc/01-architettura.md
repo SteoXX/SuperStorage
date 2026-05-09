@@ -118,6 +118,13 @@ Usare una separazione leggera:
 - `Commands`: modificano stato e aprono transazioni.
 - `Queries`: read-only, proiettano DTO e usano `AsNoTracking`.
 
+Convenzioni obbligatorie per handler, repository, query service e typed HTTP client:
+
+- usare API asincrone con `async`/`await` ogni volta che esiste una controparte async;
+- accettare sempre un `CancellationToken`;
+- inoltrare sempre il `CancellationToken` alle chiamate successive: MediatR, EF Core, HTTP client, file/storage, servizi esterni;
+- evitare sync-over-async come `.Result`, `.Wait()` o `GetAwaiter().GetResult()`.
+
 Pipeline behavior consigliati, in ordine:
 
 1. `UnhandledExceptionBehavior`
@@ -251,12 +258,12 @@ public sealed class UnitOfWorkBehavior<TRequest, TResponse>(IUnitOfWork unitOfWo
 
 ### Query
 
-Le query non devono aprire transazioni applicative e non devono usare repository pensati per aggregate mutabili. Per liste, lookup e report usare query handler read-only con proiezioni DTO, `AsNoTracking` e paginazione.
+Le query non devono aprire transazioni applicative e non devono usare repository pensati per aggregate mutabili. Per liste, lookup e report usare `IQueryDbContext.Query<TEntity>()`, che restituisce sempre una query `AsNoTracking`, con proiezioni DTO e paginazione.
 
 In sintesi:
 
 - command: repository specifiche + `IUnitOfWork` transazionale;
-- query: read model/proiezioni ottimizzate;
+- query: `IQueryDbContext` + read model/proiezioni ottimizzate no-tracking;
 - repository: nessun `SaveChanges`, nessun commit, nessun rollback.
 
 ## Domain events e outbox

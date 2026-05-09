@@ -46,6 +46,7 @@ public static class ServiceCollectionExtensions
                 .AddIdentityCookies();
 
             services.AddAuthorization();
+            services.AddScoped<IQueryDbContext>(provider => provider.GetRequiredService<WmsDbContext>());
             services.AddScoped<IUnitOfWork, UnitOfWork>();
 
             return services;
