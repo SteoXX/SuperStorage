@@ -1,0 +1,4 @@
+interface:
+  display_name: "SuperStorage Progress"
+  short_description: "Tracks code work and project progress"
+  default_prompt: "Use $superstorage-progress when making code changes in SuperStorage and update the progress tracker."

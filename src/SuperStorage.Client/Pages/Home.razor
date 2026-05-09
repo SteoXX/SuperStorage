@@ -1,14 +1,14 @@
 @page "/"
 
-<PageTitle>Home</PageTitle>
+<PageTitle>Dashboard</PageTitle>
 
-<MudText Typo="Typo.h3" GutterBottom="true">Hello, world!</MudText>
-<MudText Class="mb-8">Welcome to your new app, powered by MudBlazor and the .NET 10 Template!</MudText>
+<MudStack Spacing="3">
+    <MudText Typo="Typo.h4">Dashboard</MudText>
+    <MudText Typo="Typo.body1" Color="Color.Secondary">
+        SuperStorage e' pronto per ospitare le prossime funzionalita' operative del WMS.
+    </MudText>
 
-
-<MudAlert Severity="Severity.Normal" ContentAlignment="HorizontalAlignment.Start">
-    You can find documentation and examples on our website here:
-    <MudLink Href="https://mudblazor.com" Target="_blank" Typo="Typo.body2" Color="Color.Primary">
-        <b>www.mudblazor.com</b>
-    </MudLink>
-</MudAlert>
+    <MudAlert Severity="Severity.Info" Variant="Variant.Outlined">
+        La UI gestionale prodotti, magazzini e movimenti verra' costruita nei prossimi vertical slice.
+    </MudAlert>
+</MudStack>

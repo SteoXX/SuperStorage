@@ -1,5 +1,9 @@
 # UI/UX Blazor e MudBlazor
 
+## Riferimenti ufficiali
+
+- MudBlazor docs: https://mudblazor.com/docs/overview
+
 ## Obiettivo UI
 
 La UI deve sembrare uno strumento operativo, non una landing page. Un WMS viene usato per cercare, filtrare, confrontare, registrare movimenti e correggere errori rapidamente.

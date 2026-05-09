@@ -2,6 +2,12 @@
 
 Questo piano è ordinato per ridurre rischio: prima fondamenta tecniche, poi dominio, poi workflow verticali, poi report e hardening.
 
+Lo stato reale di avanzamento vive in:
+
+```text
+Doc/10-progress-tracker.md
+```
+
 ## Fase 0 - Allineamento iniziale
 
 1. Decidere hosting UI: hosted WASM via API come BFF same-origin.
