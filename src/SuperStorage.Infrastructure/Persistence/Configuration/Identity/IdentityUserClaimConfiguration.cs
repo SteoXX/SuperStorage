@@ -8,6 +8,6 @@ internal sealed class IdentityUserClaimConfiguration : IEntityTypeConfiguration<
 {
     public void Configure(EntityTypeBuilder<IdentityUserClaim<Guid>> builder)
     {
-        builder.ToTable("UserClaims", WmsDbContext.IdentitySchema);
+        builder.ToTable("UserClaims", SuperStorageDbContext.IdentitySchema);
     }
 }

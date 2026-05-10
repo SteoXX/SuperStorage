@@ -8,7 +8,7 @@ internal sealed class ApplicationUserConfiguration : IEntityTypeConfiguration<Ap
 {
     public void Configure(EntityTypeBuilder<ApplicationUser> builder)
     {
-        builder.ToTable("Users", WmsDbContext.IdentitySchema);
+        builder.ToTable("Users", SuperStorageDbContext.IdentitySchema);
 
         builder.Property(user => user.DisplayName)
             .HasMaxLength(200)

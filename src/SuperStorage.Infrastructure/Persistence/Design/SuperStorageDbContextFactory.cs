@@ -12,19 +12,19 @@ namespace SuperStorage.Infrastructure.Persistence.Design;
 ///     export SUPERSTORAGE_CONNECTION_STRING="Host=localhost;Port=5432;Database=x;Username=x;Password=x"
 ///     ```
 public sealed class SuperStorageDbContextFactory
-    : IDesignTimeDbContextFactory<WmsDbContext>
+    : IDesignTimeDbContextFactory<SuperStorageDbContext>
 {
-    public WmsDbContext CreateDbContext(string[] args)
+    public SuperStorageDbContext CreateDbContext(string[] args)
     {
         var connectionString =
             Environment.GetEnvironmentVariable("SUPERSTORAGE_CONNECTION_STRING")
             ?? throw new InvalidOperationException(
                 "Environment variable 'SUPERSTORAGE_CONNECTION_STRING' not found.");
 
-        var options = new DbContextOptionsBuilder<WmsDbContext>()
+        var options = new DbContextOptionsBuilder<SuperStorageDbContext>()
             .UseNpgsql(connectionString)
             .Options;
 
-        return new WmsDbContext(options);
+        return new SuperStorageDbContext(options);
     }
 }

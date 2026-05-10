@@ -9,7 +9,7 @@ internal sealed class CategoryConfiguration : IEntityTypeConfiguration<Category>
 {
     public void Configure(EntityTypeBuilder<Category> builder)
     {
-        builder.ToTable("Categories", WmsDbContext.WmsSchema);
+        builder.ToTable("Categories", SuperStorageDbContext.WmsSchema);
 
         builder.HasKey(category => category.Id);
 

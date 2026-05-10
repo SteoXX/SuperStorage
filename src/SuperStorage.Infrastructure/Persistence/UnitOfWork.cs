@@ -3,7 +3,7 @@ using SuperStorage.Application.Abstractions.Persistence;
 
 namespace SuperStorage.Infrastructure.Persistence;
 
-internal sealed class UnitOfWork(WmsDbContext dbContext) : IUnitOfWork
+internal sealed class UnitOfWork(SuperStorageDbContext dbContext) : IUnitOfWork
 {
     private IDbContextTransaction? _currentTransaction;
 

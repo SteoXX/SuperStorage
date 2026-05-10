@@ -8,6 +8,6 @@ internal sealed class IdentityUserRoleConfiguration : IEntityTypeConfiguration<I
 {
     public void Configure(EntityTypeBuilder<IdentityUserRole<Guid>> builder)
     {
-        builder.ToTable("UserRoles", WmsDbContext.IdentitySchema);
+        builder.ToTable("UserRoles", SuperStorageDbContext.IdentitySchema);
     }
 }

@@ -24,21 +24,21 @@ public static class ServiceCollectionExtensions
                 throw new InvalidOperationException("Connection string 'WmsDatabase' was not found.");
             }
 
-            services.AddDbContext<WmsDbContext>(options =>
+            services.AddDbContext<SuperStorageDbContext>(options =>
             {
                 options
                     .UseNpgsql(
                         connectionString,
                         npgsqlOptions => npgsqlOptions.MigrationsHistoryTable(
                             "__EFMigrationsHistory",
-                            WmsDbContext.WmsSchema));
+                            SuperStorageDbContext.WmsSchema));
             });
 
             // Identity configuration
             services
                 .AddIdentityCore<ApplicationUser>(ConfigureIdentityOptions)
                 .AddRoles<ApplicationRole>()
-                .AddEntityFrameworkStores<WmsDbContext>()
+                .AddEntityFrameworkStores<SuperStorageDbContext>()
                 .AddSignInManager()
                 .AddDefaultTokenProviders();
 

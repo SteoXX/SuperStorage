@@ -4,7 +4,7 @@ using SuperStorage.Domain.Products;
 
 namespace SuperStorage.Infrastructure.Persistence.Repositories.Categories;
 
-internal sealed class CategoryRepository(WmsDbContext dbContext)
+internal sealed class CategoryRepository(SuperStorageDbContext dbContext)
     : Repository<Category, Guid>(dbContext), ICategoryRepository
 {
     public async Task<Category?> GetByNameAsync(

@@ -4,7 +4,7 @@ using SuperStorage.Domain.Products;
 
 namespace SuperStorage.Infrastructure.Persistence.Repositories.Products;
 
-internal sealed class ProductRepository(WmsDbContext dbContext)
+internal sealed class ProductRepository(SuperStorageDbContext dbContext)
     : Repository<Product, Guid>(dbContext), IProductRepository
 {
     public async Task<Product?> GetByCodeAsync(

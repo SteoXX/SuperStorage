@@ -3,12 +3,12 @@ using SuperStorage.Domain.Common;
 
 namespace SuperStorage.Infrastructure.Persistence.Repositories;
 
-internal abstract class Repository<TAggregate, TId>(WmsDbContext dbContext)
+internal abstract class Repository<TAggregate, TId>(SuperStorageDbContext dbContext)
     : IRepository<TAggregate, TId>
     where TAggregate : AggregateRoot<TId>
     where TId : notnull
 {
-    protected WmsDbContext DbContext { get; } = dbContext;
+    protected SuperStorageDbContext DbContext { get; } = dbContext;
 
     public async Task<TAggregate?> GetByIdAsync(
         TId id,

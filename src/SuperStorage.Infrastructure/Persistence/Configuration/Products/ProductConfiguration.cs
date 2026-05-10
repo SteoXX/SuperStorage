@@ -9,7 +9,7 @@ internal sealed class ProductConfiguration : IEntityTypeConfiguration<Product>
 {
     public void Configure(EntityTypeBuilder<Product> builder)
     {
-        builder.ToTable("Products", WmsDbContext.WmsSchema);
+        builder.ToTable("Products", SuperStorageDbContext.WmsSchema);
 
         builder.HasKey(product => product.Id);
 

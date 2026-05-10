@@ -10,7 +10,7 @@ using SuperStorage.Infrastructure.Persistence;
 
 namespace SuperStorage.Infrastructure.Persistence.Migrations
 {
-    [DbContext(typeof(WmsDbContext))]
+    [DbContext(typeof(SuperStorageDbContext))]
     partial class WmsDbContextModelSnapshot : ModelSnapshot
     {
         protected override void BuildModel(ModelBuilder modelBuilder)

@@ -8,6 +8,6 @@ internal sealed class IdentityUserTokenConfiguration : IEntityTypeConfiguration<
 {
     public void Configure(EntityTypeBuilder<IdentityUserToken<Guid>> builder)
     {
-        builder.ToTable("UserTokens", WmsDbContext.IdentitySchema);
+        builder.ToTable("UserTokens", SuperStorageDbContext.IdentitySchema);
     }
 }

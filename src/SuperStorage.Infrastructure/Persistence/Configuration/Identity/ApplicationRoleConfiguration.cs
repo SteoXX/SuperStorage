@@ -8,7 +8,7 @@ internal sealed class ApplicationRoleConfiguration : IEntityTypeConfiguration<Ap
 {
     public void Configure(EntityTypeBuilder<ApplicationRole> builder)
     {
-        builder.ToTable("Roles", WmsDbContext.IdentitySchema);
+        builder.ToTable("Roles", SuperStorageDbContext.IdentitySchema);
 
         builder.Property(role => role.Description)
             .HasMaxLength(500);

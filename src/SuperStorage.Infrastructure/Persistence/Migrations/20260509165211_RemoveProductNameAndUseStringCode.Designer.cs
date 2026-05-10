@@ -11,7 +11,7 @@ using SuperStorage.Infrastructure.Persistence;
 
 namespace SuperStorage.Infrastructure.Persistence.Migrations
 {
-    [DbContext(typeof(WmsDbContext))]
+    [DbContext(typeof(SuperStorageDbContext))]
     [Migration("20260509165211_RemoveProductNameAndUseStringCode")]
     partial class RemoveProductNameAndUseStringCode
     {

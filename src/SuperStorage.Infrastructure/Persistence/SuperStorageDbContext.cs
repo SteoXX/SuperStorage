@@ -5,7 +5,7 @@ using SuperStorage.Infrastructure.Persistence.Identity;
 
 namespace SuperStorage.Infrastructure.Persistence;
 
-public sealed class WmsDbContext(DbContextOptions<WmsDbContext> options)
+public sealed class SuperStorageDbContext(DbContextOptions<SuperStorageDbContext> options)
     : IdentityDbContext<ApplicationUser, ApplicationRole, Guid>(options)
 {
     // ==== Schemas ====
@@ -24,6 +24,6 @@ public sealed class WmsDbContext(DbContextOptions<WmsDbContext> options)
 
         base.OnModelCreating(builder);
 
-        builder.ApplyConfigurationsFromAssembly(typeof(WmsDbContext).Assembly);
+        builder.ApplyConfigurationsFromAssembly(typeof(SuperStorageDbContext).Assembly);
     }
 }

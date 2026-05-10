@@ -3,7 +3,7 @@ using SuperStorage.Application.Abstractions.Persistence;
 
 namespace SuperStorage.Infrastructure.Persistence;
 
-internal sealed class SuperStorageReadDbContext(WmsDbContext dbContext) : IReadDbContext
+internal sealed class SuperStorageReadDbContext(SuperStorageDbContext dbContext) : IReadDbContext
 {
     public IQueryable<TEntity> Query<TEntity>()
         where TEntity : class
