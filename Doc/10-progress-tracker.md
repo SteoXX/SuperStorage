@@ -36,7 +36,7 @@ Manca qualcosa prima di passare alla prossima?
 | Validation                          | Done    | FluentValidation collegato tramite pipeline behavior.                                                                    |
 | Unit of Work / Transaction behavior | Done    | I command passano da behavior transazionale tramite unit of work.                                                        |
 | EF Core / DbContext                 | Done    | `WmsDbContext` configurato con Identity e schema/naming PascalCase.                                                      |
-| Repository base                     | Done    | Repository write model e read model con query no-tracking disponibili.                                                   |
+| Repository base                     | Done    | Repository write model e read repository specifiche con read context no-tracking disponibili.                            |
 | Identity / Auth cookie / BFF        | Done    | Identity, cookie HttpOnly, antiforgery, BFF same-origin e UI auth implementati.                                          |
 | Authorization policies              | Done    | Policy base per prodotti e gestione utenti definite.                                                                     |
 | Product aggregate                   | Done    | Aggregate, value object, category link, audit fields, repository, command/query e API presenti per lo scope corrente.    |
@@ -121,8 +121,11 @@ Decisioni:
 Decisioni:
 
 - Repository write model per aggregate root.
-- Read repository/query context per letture.
-- Query EF Core in lettura con `AsNoTracking()`.
+- Read repository specifiche per query, lookup e proiezioni DTO.
+- `IReadDbContext` come porta read-only minimale.
+- `SuperStorageReadDbContext` come adapter EF Core Infrastructure con `AsNoTracking()`.
+- `WmsDbContext` resta focalizzato su mapping EF/Identity, senza wrapper applicativi di query.
+- `IQueryable` resta interno al read side Infrastructure e non viene esposto dalle interfacce repository.
 - Evitare tracking sulle query MediatR read-only.
 
 ### Naming e stile codice
@@ -260,7 +263,7 @@ Completato:
 
 ## Ultimo checkpoint noto
 
-Data: 2026-05-09
+Data: 2026-05-10
 
 Checkpoint:
 
@@ -268,3 +271,4 @@ Checkpoint:
 - Logout corretto dopo fix del CSRF token legato all'identita'.
 - Documentazione Auth/BFF aggiornata.
 - Product e Category hanno create/list/detail/edit/delete a livello API e UI; prossimo blocco naturale: test vertical slice o osservabilita' minima.
+- Read side refactor completato: `IReadDbContext`, `SuperStorageReadDbContext`, `IReadRepository` minimale e read repository specifiche per Product/Category.

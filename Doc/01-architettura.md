@@ -259,12 +259,21 @@ public sealed class UnitOfWorkBehavior<TRequest, TResponse>(IUnitOfWork unitOfWo
 
 ### Query
 
-Le query non devono aprire transazioni applicative e non devono usare repository pensati per aggregate mutabili. Per liste, lookup e report usare `IQueryDbContext.Query<TEntity>()`, che restituisce sempre una query `AsNoTracking`, con proiezioni DTO e paginazione.
+Le query non devono aprire transazioni applicative e non devono usare repository pensati per aggregate mutabili. Per liste, lookup e report usare read repository specifiche, ad esempio `IProductReadRepository` o `ICategoryReadRepository`, che incapsulano proiezioni DTO, filtri, paginazione e query `AsNoTracking`.
+
+Convenzioni read side:
+
+- `IReadDbContext` e' una porta applicativa minimale per ottenere query read-only;
+- `SuperStorageReadDbContext` e' l'adapter Infrastructure basato su EF Core e `WmsDbContext`;
+- `WmsDbContext` resta il DbContext EF, senza wrapper applicativi per `ToListAsync`, `CountAsync` o `SingleOrDefaultAsync`;
+- `IReadRepository<TEntity, TId>` espone solo metodi comuni realmente utili, come `GetByIdAsync`;
+- `ReadRepository<TEntity, TId>` puo' avere `Query()` protetto, ma `IQueryable` non deve essere esposto pubblicamente dagli handler o dalle interfacce Application;
+- le read repository specifiche espongono metodi orientati al caso d'uso, come `SearchAsync`, `GetByIdResponseAsync`, `GetDeleteImpactAsync` o lookup dedicati.
 
 In sintesi:
 
 - command: repository specifiche + `IUnitOfWork` transazionale;
-- query: `IQueryDbContext` + read model/proiezioni ottimizzate no-tracking;
+- query: read repository specifiche + read model/proiezioni ottimizzate no-tracking;
 - repository: nessun `SaveChanges`, nessun commit, nessun rollback.
 
 ## Domain events e outbox

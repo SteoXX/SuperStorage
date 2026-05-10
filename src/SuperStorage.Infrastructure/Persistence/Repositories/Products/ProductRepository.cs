@@ -2,7 +2,7 @@ using Microsoft.EntityFrameworkCore;
 using SuperStorage.Application.Features.Products;
 using SuperStorage.Domain.Products;
 
-namespace SuperStorage.Infrastructure.Persistence.Repositories;
+namespace SuperStorage.Infrastructure.Persistence.Repositories.Products;
 
 internal sealed class ProductRepository(WmsDbContext dbContext)
     : Repository<Product, Guid>(dbContext), IProductRepository

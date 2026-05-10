@@ -2,7 +2,7 @@ using Microsoft.EntityFrameworkCore;
 using SuperStorage.Application.Features.Categories;
 using SuperStorage.Domain.Products;
 
-namespace SuperStorage.Infrastructure.Persistence.Repositories;
+namespace SuperStorage.Infrastructure.Persistence.Repositories.Categories;
 
 internal sealed class CategoryRepository(WmsDbContext dbContext)
     : Repository<Category, Guid>(dbContext), ICategoryRepository

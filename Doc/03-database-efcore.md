@@ -114,7 +114,9 @@ Per comandi:
 
 Per query:
 
-- query handler read-only con `IQueryDbContext.Query<TEntity>()`, che applica `AsNoTracking` centralmente;
+- query handler read-only tramite read repository specifiche, appoggiate a `IReadDbContext` e `SuperStorageReadDbContext`;
+- `AsNoTracking` centralizzato nel read context Infrastructure;
+- `IQueryable` non esposto dalle interfacce read repository pubbliche;
 - proiezioni dirette;
 - paginazione obbligatoria;
 - eventuali query service se i report diventano complessi.

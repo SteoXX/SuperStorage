@@ -79,7 +79,7 @@ public static class ServiceCollectionExtensions
                     policy.RequireRole(AuthRoles.Administrator));
             });
 
-            services.AddScoped<IQueryDbContext>(provider => provider.GetRequiredService<WmsDbContext>());
+            services.AddScoped<IReadDbContext, SuperStorageReadDbContext>();
             services.AddScoped<IUnitOfWork, UnitOfWork>();
 
             // Register repositories by convention

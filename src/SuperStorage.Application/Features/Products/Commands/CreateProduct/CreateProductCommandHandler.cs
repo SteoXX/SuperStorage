@@ -1,5 +1,5 @@
 using MediatR;
-using SuperStorage.Application.Abstractions.Persistence;
+using SuperStorage.Application.Features.Categories;
 using SuperStorage.Contracts.Products;
 using SuperStorage.Domain.Products;
 
@@ -7,7 +7,7 @@ namespace SuperStorage.Application.Features.Products.Commands.CreateProduct;
 
 internal sealed class CreateProductCommandHandler(
     IProductRepository productRepository,
-    IQueryDbContext dbContext)
+    ICategoryReadRepository categoryReadRepository)
     : IRequestHandler<CreateProductCommand, ProductResponse>
 {
     public async Task<ProductResponse> Handle(
@@ -28,7 +28,7 @@ internal sealed class CreateProductCommandHandler(
         }
 
         if (request.CategoryId is not null &&
-            !await CategoryExistsAsync(request.CategoryId.Value, cancellationToken))
+            !await categoryReadRepository.ExistsByIdAsync(request.CategoryId.Value, cancellationToken))
         {
             throw new InvalidOperationException("The selected category does not exist.");
         }
@@ -54,16 +54,5 @@ internal sealed class CreateProductCommandHandler(
             product.IsActive,
             product.CreatedAtUtc,
             product.UpdatedAtUtc);
-    }
-
-    private async Task<bool> CategoryExistsAsync(
-        Guid categoryId,
-        CancellationToken cancellationToken)
-    {
-        var total = await dbContext.CountAsync(
-            dbContext.Query<Category>().Where(category => category.Id == categoryId),
-            cancellationToken);
-
-        return total > 0;
     }
 }

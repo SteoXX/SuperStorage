@@ -1,13 +1,12 @@
 using MediatR;
-using SuperStorage.Application.Abstractions.Persistence;
+using SuperStorage.Application.Features.Categories;
 using SuperStorage.Contracts.Products;
-using SuperStorage.Domain.Products;
 
 namespace SuperStorage.Application.Features.Products.Commands.UpdateProduct;
 
 internal sealed class UpdateProductCommandHandler(
     IProductRepository productRepository,
-    IQueryDbContext dbContext)
+    ICategoryReadRepository categoryReadRepository)
     : IRequestHandler<UpdateProductCommand, ProductResponse?>
 {
     public async Task<ProductResponse?> Handle(
@@ -25,7 +24,9 @@ internal sealed class UpdateProductCommandHandler(
 
         if (request.CategoryId is not null)
         {
-            categoryName = await GetCategoryNameAsync(request.CategoryId.Value, cancellationToken);
+            categoryName = await categoryReadRepository.GetNameByIdAsync(
+                request.CategoryId.Value,
+                cancellationToken);
 
             if (categoryName is null)
             {
@@ -51,16 +52,5 @@ internal sealed class UpdateProductCommandHandler(
             product.IsActive,
             product.CreatedAtUtc,
             product.UpdatedAtUtc);
-    }
-
-    private async Task<string?> GetCategoryNameAsync(
-        Guid categoryId,
-        CancellationToken cancellationToken)
-    {
-        var category = await dbContext.SingleOrDefaultAsync(
-            dbContext.Query<Category>().Where(category => category.Id == categoryId),
-            cancellationToken);
-
-        return category?.Name;
     }
 }
