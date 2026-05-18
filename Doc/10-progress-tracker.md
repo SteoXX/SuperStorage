@@ -30,8 +30,8 @@ Manca qualcosa prima di passare alla prossima?
 
 | Area                                | Stato   | Note                                                                                                                     |
 | ----------------------------------- | ------- | ------------------------------------------------------------------------------------------------------------------------ |
-| Documentazione progetto             | Partial | Struttura `Doc` creata con architettura, sicurezza, UI, test, osservabilita' e roadmap.                                  |
-| Clean Architecture                  | Partial | Progetti separati gia' presenti e convenzioni iniziali definite. Da completare con test architetturali.                  |
+| Documentazione progetto             | Done    | Struttura `Doc` creata con architettura, sicurezza, UI, test, osservabilita' e roadmap.                                  |
+| Clean Architecture                  | Done    | Progetti separati e test architetturali iniziali per dependency boundaries e convenzioni naming presenti.                |
 | MediatR                             | Done    | `ICommand`, `IQuery`, handler e pipeline behavior configurati.                                                           |
 | Validation                          | Done    | FluentValidation collegato tramite pipeline behavior.                                                                    |
 | Unit of Work / Transaction behavior | Done    | I command passano da behavior transazionale tramite unit of work.                                                        |
@@ -46,7 +46,7 @@ Manca qualcosa prima di passare alla prossima?
 | Inventory / Movements               | Planned | Non iniziato.                                                                                                            |
 | Customers / Suppliers / Orders      | Planned | Non iniziato.                                                                                                            |
 | Reporting                           | Planned | Non iniziato.                                                                                                            |
-| Tests                               | Planned | Da aggiungere unit, integration e architecture tests.                                                                    |
+| Tests                               | Done    | Unit/Application/Architecture test e integration test API obbligatori configurati. CI GitHub Actions aggiunta.           |
 
 ## Ledger indicizzato
 
@@ -54,8 +54,8 @@ Usare questi ID quando aggiorniamo il progresso o quando dobbiamo riprendere una
 
 | ID              | Area                                               | Stato   | Fonte principale                                                                                                                                                                                      |
 | --------------- | -------------------------------------------------- | ------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `DOCS`          | Documentazione progetto                            | Partial | `Doc/`                                                                                                                                                                                                |
-| `ARCH`          | Clean Architecture e convenzioni                   | Partial | `Doc/01-architettura.md`                                                                                                                                                                              |
+| `DOCS`          | Documentazione progetto                            | Done    | `Doc/`                                                                                                                                                                                                |
+| `ARCH`          | Clean Architecture e convenzioni                   | Done    | `Doc/01-architettura.md`, `tests/SuperStorage.ArchitectureTests`                                                                                                                                      |
 | `MEDIATR`       | MediatR, command/query e behavior                  | Done    | `src/SuperStorage.Application`                                                                                                                                                                        |
 | `EFCORE`        | DbContext, EF Core, Identity schema                | Done    | `src/SuperStorage.Infrastructure/Persistence`                                                                                                                                                         |
 | `REPOSITORY`    | Repository base e query no-tracking                | Done    | `src/SuperStorage.Application/Abstractions/Persistence`, `src/SuperStorage.Infrastructure/Persistence/Repositories`                                                                                   |
@@ -68,7 +68,7 @@ Usare questi ID quando aggiorniamo il progresso o quando dobbiamo riprendere una
 | `PARTIES`       | Clienti e fornitori                                | Planned | Da definire                                                                                                                                                                                           |
 | `ORDERS`        | Ordini e workflow                                  | Planned | Da definire                                                                                                                                                                                           |
 | `REPORTING`     | Reportistica e dashboard                           | Planned | Da definire                                                                                                                                                                                           |
-| `TESTS`         | Unit, integration e architecture tests             | Planned | `Doc/07-test-qualita.md`                                                                                                                                                                              |
+| `TESTS`         | Unit, integration e architecture tests             | Done    | `Doc/07-test-qualita.md`, `tests/`                                                                                                                                                                    |
 
 ## Decisioni gia' prese
 
@@ -137,6 +137,17 @@ Decisioni:
 - Usare async/await ove possibile.
 - Forwardare sempre il `CancellationToken`.
 - Commenti nel codice in inglese.
+- I test architetturali validano naming MediatR e repository: `Command`, `Query`, `CommandHandler`, `QueryHandler`, repository write/read.
+
+### CI e integration test
+
+Decisioni:
+
+- La CI gira su GitHub Actions per `push` su `main` e `pull_request` verso `main`.
+- La build CI usa configurazione `Release`.
+- Gli integration test API con PostgreSQL/Testcontainers non devono essere skippati.
+- Non usiamo docker-compose per la CI test: Testcontainers gestisce il database PostgreSQL disposable.
+- Le migration vengono validate in CI con `dotnet ef migrations list --no-connect`; l'applicazione delle migration viene verificata dagli integration test su database Testcontainers.
 
 ## Feature completate
 
@@ -250,15 +261,15 @@ Completato:
 
 ## Prossime feature consigliate
 
-1. Aggiungere test unit/integration per Product e Category vertical slice.
+1. Verificare il primo run GitHub Actions su PR/main e correggere eventuali problemi specifici del runner.
 2. Aggiungere logging/observability minima: Serilog, request logging, health checks.
 3. Introdurre `ICurrentUser` e audit base.
 4. Implementare Warehouse/Location.
-5. Passare a StockBalance e InventoryMovement.
+5. Valutare architecture test aggiuntivi per endpoint che non referenziano direttamente EF Core.
 
 ## Domande aperte
 
-- Vogliamo aggiungere prima test integration per Auth/Product, o andare avanti con UI e poi coprire?
+- Vogliamo estendere gli architecture test agli endpoint API e ai typed client Blazor?
 - Il modello ruoli resta role-based per ora, oppure iniziamo presto con permission claims granulari?
 
 ## Ultimo checkpoint noto
@@ -272,3 +283,10 @@ Checkpoint:
 - Documentazione Auth/BFF aggiornata.
 - Product e Category hanno create/list/detail/edit/delete a livello API e UI; prossimo blocco naturale: test vertical slice o osservabilita' minima.
 - Read side refactor completato: `IReadDbContext`, `SuperStorageReadDbContext`, `IReadRepository` minimale e read repository specifiche per Product/Category.
+- Unit test iniziali completati: Domain e Application con xUnit v3, Moq e Shouldly; 39 test verdi.
+- Progetti test presenti sotto solution folder `Tests`.
+- Integration test API iniziali aggiunti con `WebApplicationFactory` e `Testcontainers.PostgreSql`: auth/csrf/register/login/logout, authorization products e workflow category-product delete impact.
+- Gli integration test API sono obbligatori: localmente falliscono se Docker non e' accessibile.
+- Architecture tests aggiunti con `NetArchTest.Rules` e reflection: 16 test verdi per Clean Architecture dependencies, naming MediatR e naming repository.
+- CI GitHub Actions aggiunta in `.github/workflows/ci.yml`: restore tools, restore solution, build Release, check EF migrations, test separati per Domain/Application/Architecture/API integration.
+- Integration test API verificati con Docker accessibile tramite gruppo `docker`: 8 test verdi, nessuno skipped.

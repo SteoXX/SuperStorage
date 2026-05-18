@@ -13,11 +13,10 @@ La piramide consigliata:
 ## Progetti test consigliati
 
 ```text
-tests/SuperStorage.Domain.Tests
-tests/SuperStorage.Application.Tests
-tests/SuperStorage.Infrastructure.Tests
-tests/SuperStorage.Api.Tests
-tests/SuperStorage.Architecture.Tests
+tests/SuperStorage.Domain.UnitTests
+tests/SuperStorage.Application.UnitTests
+tests/SuperStorage.Api.IntegrationTests
+tests/SuperStorage.ArchitectureTests
 ```
 
 Per la UI, valutare più avanti:
@@ -26,16 +25,27 @@ Per la UI, valutare più avanti:
 tests/SuperStorage.Client.Tests
 ```
 
-## xUnit
+I progetti test devono essere aggiunti alla solution sotto il solution folder `Tests`, cosi' restano separati dai progetti applicativi anche in IDE.
 
-Scegliere xUnit v3 se parti ora da zero, oppure xUnit v2 se vuoi massima compatibilità con esempi e tooling consolidato. L'importante è non mischiare runner e pacchetti.
+## xUnit, Moq e Shouldly
+
+Il progetto usa xUnit v3 per i nuovi test.
 
 Pacchetti comuni:
 
 - `xunit.v3`
-- `FluentAssertions`
-- `NSubstitute`
-- `Microsoft.NET.Test.Sdk` se si usa runner VSTest
+- `xunit.runner.visualstudio`
+- `xunit.analyzers`
+- `Microsoft.NET.Test.Sdk`
+- `Moq`
+- `Shouldly`
+
+Le versioni sono gestite tramite Central Package Management in `Directory.Packages.props`.
+
+Per gli integration test API sono configurati anche:
+
+- `Microsoft.AspNetCore.Mvc.Testing`;
+- `Testcontainers.PostgreSql`.
 
 ## Test Domain
 
@@ -43,6 +53,10 @@ Copertura prioritaria:
 
 - creazione SKU valida/non valida;
 - prodotto attivo/disattivo;
+- normalizzazione e validazione codice prodotto;
+- aggiornamento dettagli prodotto;
+- rimozione categoria da prodotto;
+- creazione e aggiornamento categoria;
 - ubicazione codice univoco;
 - movimento stock con quantità positiva;
 - trasferimento richiede origine e destinazione diverse;
@@ -57,6 +71,7 @@ Copertura:
 
 - validator FluentValidation;
 - command handler crea entità corrette;
+- command handler delete rimuove entità o ritorna `false` quando non trovata;
 - query handler pagina e filtra;
 - autorizzazioni applicative;
 - transaction behavior chiama commit/rollback;
@@ -74,7 +89,9 @@ Usare PostgreSQL reale con Testcontainers:
 - endpoint CRUD anagrafiche;
 - workflow ricezione, trasferimento, spedizione.
 
-Usare `Respawn` per pulire database tra test senza ricreare container ogni volta.
+Gli integration test API attuali usano `WebApplicationFactory` e PostgreSQL reale tramite Testcontainers. Richiedono accesso a Docker e non devono essere skippati: se Docker non e' disponibile o il socket non e' accessibile, i test devono fallire.
+
+Usare `Respawn` piu' avanti per pulire database tra test senza ricreare container ogni volta, quando il numero di integration test crescera'.
 
 ## Test API
 
@@ -99,7 +116,18 @@ Verificare:
 - Client non referenzia Domain/Infrastructure;
 - Infrastructure non referenzia Api/Client.
 
-`NetArchTest.Rules` è sufficiente.
+Il progetto reale e' `tests/SuperStorage.ArchitectureTests`.
+
+Usiamo `NetArchTest.Rules` per le regole di dipendenza tra layer perche' e' leggero, leggibile e pensato per essere integrato in normali unit test. `ArchUnitNET` resta una buona alternativa piu' ricca se in futuro vorremo regole piu' profonde su classi, membri, PlantUML o dependency graph avanzati.
+
+Regole attuali:
+
+- Clean Architecture dependencies tra Domain, Application, Infrastructure, Api, Client e Contracts;
+- naming `ICommand` / `IQuery`;
+- naming e matching `CommandHandler` / `QueryHandler`;
+- handler MediatR internal sealed;
+- naming e inheritance repository write/read;
+- repository concrete internal sealed.
 
 ## Qualità codice
 
@@ -140,6 +168,14 @@ Test, quando i progetti saranno creati:
 dotnet test Dev.slnx
 ```
 
+Solo integration test API:
+
+```bash
+dotnet test tests/SuperStorage.Api.IntegrationTests/SuperStorage.Api.IntegrationTests.csproj
+```
+
+Se gli integration test API falliscono con `DockerUnavailableException`, verificare che Docker sia avviato e che l'utente corrente abbia accesso a `/var/run/docker.sock`.
+
 Format:
 
 ```bash
@@ -148,14 +184,15 @@ dotnet format Dev.slnx
 
 ## CI minima
 
-Pipeline:
+Pipeline GitHub Actions:
 
 1. checkout;
 2. setup .NET;
-3. restore;
-4. build release;
-5. test;
-6. publish API;
-7. upload artifacts.
+3. cache NuGet packages;
+4. restore .NET tools;
+5. restore solution;
+6. build Release;
+7. check EF Core migrations con `dotnet ef migrations list --no-connect`;
+8. test Domain, Application, Architecture e API integration in step separati.
 
-Quando i test integration useranno Testcontainers, il runner CI deve supportare Docker.
+La CI gira su `push` verso `main` e su `pull_request` verso `main`. I runner GitHub-hosted Linux hanno Docker disponibile per Testcontainers; non usiamo docker-compose per i test perche' il ciclo di vita PostgreSQL e' gia' gestito dal test harness.
