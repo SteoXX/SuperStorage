@@ -1,0 +1,71 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+permissions:
+  contents: read
+
+env:
+  DOTNET_VERSION: 10.0.x
+  DOTNET_NOLOGO: true
+  DOTNET_CLI_TELEMETRY_OPTOUT: true
+  NUGET_PACKAGES: ${{ github.workspace }}/.nuget/packages
+  SUPERSTORAGE_CONNECTION_STRING: Host=localhost;Port=5432;Database=SuperStorageMigrationsCheck;Username=postgres;Password=postgres
+
+jobs:
+  build-and-test:
+    name: Build and test
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: ${{ env.DOTNET_VERSION }}
+
+      - name: Cache NuGet packages
+        uses: actions/cache@v4
+        with:
+          path: ${{ env.NUGET_PACKAGES }}
+          key: ${{ runner.os }}-nuget-${{ hashFiles('Directory.Packages.props', 'dotnet-tools.json', '**/*.csproj', '**/*.props', '**/*.targets') }}
+          restore-keys: |
+            ${{ runner.os }}-nuget-
+
+      - name: Restore .NET tools
+        run: dotnet tool restore
+
+      - name: Restore
+        run: dotnet restore Dev.slnx
+
+      - name: Build
+        run: dotnet build Dev.slnx --configuration Release --no-restore
+
+      - name: Check EF Core migrations
+        run: >
+          dotnet ef migrations list
+          --project src/SuperStorage.Infrastructure/SuperStorage.Infrastructure.csproj
+          --context SuperStorageDbContext
+          --configuration Release
+          --no-build
+          --no-connect
+
+      - name: Test Domain
+        run: dotnet test tests/SuperStorage.Domain.UnitTests/SuperStorage.Domain.UnitTests.csproj --configuration Release --no-build
+
+      - name: Test Application
+        run: dotnet test tests/SuperStorage.Application.UnitTests/SuperStorage.Application.UnitTests.csproj --configuration Release --no-build
+
+      - name: Test Architecture
+        run: dotnet test tests/SuperStorage.ArchitectureTests/SuperStorage.ArchitectureTests.csproj --configuration Release --no-build
+
+      - name: Test API integration
+        run: dotnet test tests/SuperStorage.Api.IntegrationTests/SuperStorage.Api.IntegrationTests.csproj --configuration Release --no-build
